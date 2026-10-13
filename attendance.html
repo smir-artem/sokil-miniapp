@@ -104,11 +104,16 @@
     return JSON.parse(new TextDecoder("utf-8").decode(bytes));
   }
 
-  // Telegram дописує до адреси свої параметри (#…&tgWebAppVersion=…&tgWebAppData=…),
-  // тому шукаємо наш список серед частин адреси після «#», а не беремо її цілком.
+  // Список бот передає в «?d=…» (Telegram Desktop замінює частину після «#» своїми параметрами);
+  // для старих кнопок — пошук у частинах адреси після «#».
   var why = "h0";
+  var q = /[?&]d=([A-Za-z0-9_-]+)/.exec(location.search || "");
+  if (q) {
+    why = "q1";
+    try { data = decode(q[1]); } catch (e) { data = null; }
+  }
   var hash = (location.hash || "").replace(/^#/, "");
-  if (hash) {
+  if (!data && hash) {
     why = "h1";
     var parts = hash.split("&");
     for (var p = 0; p < parts.length && !data; p++) {
