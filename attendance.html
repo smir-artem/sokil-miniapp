@@ -96,21 +96,34 @@
   var tg = window.Telegram && window.Telegram.WebApp;
   var data = null;
 
-  function decode(hash) {
-    var s = hash.replace(/^#/, "").replace(/-/g, "+").replace(/_/g, "/");
+  function decode(part) {
+    var s = part.replace(/-/g, "+").replace(/_/g, "/");
     while (s.length % 4) s += "=";
     var bin = atob(s), bytes = new Uint8Array(bin.length);
     for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return JSON.parse(new TextDecoder("utf-8").decode(bytes));
   }
 
-  try { data = decode(location.hash); } catch (e) { data = null; }
+  // Telegram дописує до адреси свої параметри (#…&tgWebAppVersion=…&tgWebAppData=…),
+  // тому шукаємо наш список серед частин адреси після «#», а не беремо її цілком.
+  var why = "h0";
+  var hash = (location.hash || "").replace(/^#/, "");
+  if (hash) {
+    why = "h1";
+    var parts = hash.split("&");
+    for (var p = 0; p < parts.length && !data; p++) {
+      var part = parts[p];
+      if (!part || part.indexOf("=") > 0 && /^tgWebApp/.test(part)) continue;
+      try { data = decode(decodeURIComponent(part)); } catch (e) { data = null; }
+    }
+  }
 
   if (tg) { tg.ready(); tg.expand(); }
 
   if (!data || data.v !== 1 || !Array.isArray(data.k)) {
     document.getElementById("list").outerHTML =
-      '<div class="err">Список не завантажено. Поверніться в бот і відкрийте його ще раз кнопкою «📝 Відкрити список».</div>';
+      '<div class="err">Список не завантажено. Поверніться в бот і відкрийте його ще раз кнопкою «📝 Відкрити список».' +
+      '<br><small>Код: ' + why + (tg ? "·" + (tg.platform || "?") + "·" + (tg.version || "?") : "·notg") + '</small></div>';
     document.getElementById("all").style.display = "none";
     return;
   }
