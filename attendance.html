@@ -13,63 +13,70 @@
     --hint: var(--tg-theme-hint-color, #8a8a8e);
     --accent: var(--tg-theme-button-color, #2481cc);
     --accent-text: var(--tg-theme-button-text-color, #ffffff);
-    --ok: #2e9d4f;
-    --bad: #d6423a;
-    --line: rgba(127, 127, 127, .18);
+    --ok: #34a853;
+    --bad: #e5534b;
+    --wait: #e3a008;
+    --line: rgba(127, 127, 127, .16);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
   body {
     background: var(--bg2); color: var(--text);
-    font: 16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    padding-bottom: 96px;
+    font: 15px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding-bottom: 88px;
   }
   header {
     position: sticky; top: 0; z-index: 2; background: var(--bg2);
-    padding: 12px 16px 8px; border-bottom: 1px solid var(--line);
+    padding: 10px 16px 8px; border-bottom: 1px solid var(--line);
   }
-  h1 { font-size: 18px; margin: 0; }
-  .sub { color: var(--hint); font-size: 14px; margin-top: 2px; }
-  .bar { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-  .count { flex: 1; font-weight: 600; }
-  .count b { color: var(--ok); }
+  h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  .sub { color: var(--hint); font-size: 13px; margin-top: 1px; }
+  .bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .count { flex: 1; font-size: 13px; color: var(--hint); display: flex; gap: 12px; }
+  .count span { display: inline-flex; align-items: center; gap: 5px; }
+  .count b { color: var(--text); font-weight: 600; }
   button.all {
-    border: 0; border-radius: 10px; padding: 9px 12px; font-size: 15px; font-weight: 600;
+    border: 0; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600;
     background: var(--bg); color: var(--accent);
   }
-  ul { list-style: none; margin: 12px 12px 0; padding: 0; background: var(--bg); border-radius: 12px; overflow: hidden; }
+  ul { list-style: none; margin: 10px 12px 0; padding: 0; background: var(--bg); border-radius: 12px; overflow: hidden; }
   li { border-top: 1px solid var(--line); }
   li:first-child { border-top: 0; }
-  .row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 56px; cursor: pointer; user-select: none; }
-  .num { width: 22px; color: var(--hint); font-size: 14px; text-align: right; flex: none; }
+  li.sep { border-top: 0; padding: 14px 14px 4px; font-size: 12px; color: var(--hint); background: var(--bg2);
+           text-transform: uppercase; letter-spacing: .03em; }
+  .row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; min-height: 46px; cursor: pointer; user-select: none; }
+  .num { width: 18px; color: var(--hint); font-size: 12px; text-align: right; flex: none; }
   .name { flex: 1; }
-  .hint { display: block; color: var(--hint); font-size: 13px; }
-  .mark {
-    flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
-    font-size: 18px; font-weight: 700; color: #fff; background: var(--ok);
-  }
-  li.absent .mark { background: var(--bad); }
+  .hint { display: block; color: var(--hint); font-size: 12px; }
+  .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--wait); }
+  .state { flex: none; font-size: 12px; color: var(--hint); min-width: 58px; text-align: right; }
+  li.ok .dot { background: var(--ok); }
+  li.absent .dot { background: var(--bad); }
   li.absent .name { color: var(--bad); }
-  .reasons { display: none; gap: 6px; padding: 0 14px 12px 48px; flex-wrap: wrap; }
+  li.ok .state { color: var(--ok); }
+  li.absent .state { color: var(--bad); }
+  li.wait .state { color: var(--wait); }
+  .reasons { display: none; gap: 6px; padding: 0 14px 10px 42px; flex-wrap: wrap; }
   li.absent .reasons { display: flex; }
   .reasons button {
-    border: 1px solid var(--line); background: var(--bg2); color: var(--text);
-    border-radius: 16px; padding: 6px 12px; font-size: 14px;
+    border: 1px solid var(--line); background: transparent; color: var(--hint);
+    border-radius: 14px; padding: 3px 10px; font-size: 12px;
   }
-  .reasons button.on { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .reasons button.on { border-color: var(--bad); color: var(--bad); }
   .note { margin: 12px; background: var(--bg); border-radius: 12px; padding: 10px 14px; }
-  .note label { display: block; color: var(--hint); font-size: 13px; margin-bottom: 6px; }
+  .note label { display: block; color: var(--hint); font-size: 12px; margin-bottom: 6px; }
   .note textarea {
-    width: 100%; min-height: 64px; border: 1px solid var(--line); border-radius: 8px; padding: 8px;
+    width: 100%; min-height: 56px; border: 1px solid var(--line); border-radius: 8px; padding: 8px;
     font: inherit; color: var(--text); background: var(--bg2); resize: vertical;
   }
   .err { margin: 24px 16px; padding: 16px; background: var(--bg); border-radius: 12px; }
-  footer { color: var(--hint); font-size: 13px; padding: 12px 16px; }
+  footer { color: var(--hint); font-size: 12px; padding: 4px 16px 12px; }
   #save {
     position: fixed; left: 12px; right: 12px; bottom: 12px; border: 0; border-radius: 12px;
-    padding: 15px; font-size: 16px; font-weight: 700; background: var(--accent); color: var(--accent-text);
+    padding: 14px; font-size: 15px; font-weight: 600; background: var(--accent); color: var(--accent-text);
     display: none;
   }
+  #save.off { opacity: .55; }
 </style>
 </head>
 <body>
@@ -78,21 +85,23 @@
   <div class="sub" id="sub"></div>
   <div class="bar">
     <div class="count" id="count"></div>
-    <button class="all" id="all" type="button">✅ Усі присутні</button>
+    <button class="all" id="all" type="button">Решта присутні</button>
   </div>
 </header>
 <ul id="list"></ul>
 <div class="note">
-  <label for="comment">💬 Коментар (необов'язково) — його отримає директор</label>
-  <textarea id="comment" maxlength="1000" placeholder="Наприклад: тренування перенесли на поле зелене"></textarea>
+  <label for="comment">Коментар (необов'язково) — його отримає директор</label>
+  <textarea id="comment" maxlength="1000" placeholder="Наприклад: тренування перенесли на поле"></textarea>
 </div>
-<footer>Натисніть на дитину, щоб позначити відсутність, і оберіть причину. Ще раз — знову «присутній».</footer>
-<button id="save" type="button">💾 Зберегти</button>
+<footer>Натискання: жовтий → зелений (присутній) → червоний (відсутній, оберіть причину) → зелений.
+Жовтий — відомостей ще немає; перед збереженням відмітьте всіх або натисніть «Решта присутні».</footer>
+<button id="save" type="button">Зберегти</button>
 
 <script>
 (function () {
   "use strict";
-  var REASONS = [["s", "🤒 Хворіє"], ["p", "📩 Повідомили"], ["n", "❔ Без причини"], ["x", "⛔ Не допущений"]];
+  var REASONS = [["s", "Хворіє"], ["p", "Повідомили"], ["n", "Без причини"], ["x", "Не допущений"]];
+  var WAIT = "?";
   var tg = window.Telegram && window.Telegram.WebApp;
   var data = null;
 
@@ -133,30 +142,43 @@
     return;
   }
 
-  // state[i] = "" — присутній, або код причини відсутності
-  var state = data.k.map(function (k) { return k[1] || ""; });
+  // state[i]: "" — присутній (зелений), "?" — немає відомостей (жовтий), код причини — відсутній (червоний).
+  // Індекси i — як у списку бота (алфавіт); показуємо: спершу без відомостей про відсутність, у кінці — відсутні.
+  var state = data.k.map(function (k) { return k[1] ? k[1] : (k[3] ? "" : WAIT); });
+  var order = data.k.map(function (k, i) { return i; });
+  var tail = order.filter(function (i) { return !!data.k[i][1]; });
+  order = order.filter(function (i) { return !data.k[i][1]; }).concat(tail);
 
   document.getElementById("title").textContent = "Група " + data.g;
   if (typeof data.c === "string") document.getElementById("comment").value = data.c;
   document.getElementById("sub").textContent = data.d;
 
   var list = document.getElementById("list");
-  data.k.forEach(function (k, i) {
+  var items = {};
+  order.forEach(function (i, pos) {
+    var k = data.k[i];
+    if (tail.length && pos === order.length - tail.length) {
+      var sep = document.createElement("li");
+      sep.className = "sep"; sep.textContent = "Відомо, що не будуть";
+      list.appendChild(sep);
+    }
     var li = document.createElement("li");
     var row = document.createElement("div");
     row.className = "row";
     var num = document.createElement("span");
-    num.className = "num"; num.textContent = i + 1;
+    num.className = "num"; num.textContent = pos + 1;
+    var dot = document.createElement("span");
+    dot.className = "dot";
     var name = document.createElement("span");
     name.className = "name"; name.textContent = k[0];
     if (k[2]) {
       var h = document.createElement("span");
-      h.className = "hint"; h.textContent = "📩 батьки повідомили про відсутність";
+      h.className = "hint"; h.textContent = "батьки повідомили про відсутність";
       name.appendChild(h);
     }
-    var mark = document.createElement("span");
-    mark.className = "mark";
-    row.appendChild(num); row.appendChild(name); row.appendChild(mark);
+    var st = document.createElement("span");
+    st.className = "state";
+    row.appendChild(num); row.appendChild(dot); row.appendChild(name); row.appendChild(st);
     var reasons = document.createElement("div");
     reasons.className = "reasons";
     REASONS.forEach(function (r) {
@@ -168,44 +190,71 @@
       reasons.appendChild(b);
     });
     row.addEventListener("click", function () {
-      state[i] = state[i] ? "" : (k[2] && k[1]) ? k[1] : "n";
+      if (state[i] === WAIT) state[i] = "";
+      else if (state[i] === "") state[i] = (k[2] && k[1]) ? k[1] : "n";
+      else state[i] = "";
       render(); haptic();
     });
     li.appendChild(row); li.appendChild(reasons);
     list.appendChild(li);
+    items[i] = li;
   });
 
   document.getElementById("all").addEventListener("click", function () {
-    state = state.map(function () { return ""; }); render(); haptic();
+    state = state.map(function (s) { return s === WAIT ? "" : s; }); render(); haptic();
   });
 
   function haptic() {
     try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {}
   }
 
+  function label(s) {
+    if (s === WAIT) return "немає даних";
+    if (s === "") return "присутній";
+    return "відсутній";
+  }
+
+  function counts() {
+    var c = { ok: 0, bad: 0, wait: 0 };
+    state.forEach(function (s) { if (s === WAIT) c.wait++; else if (s === "") c.ok++; else c.bad++; });
+    return c;
+  }
+
   function render() {
-    var present = 0;
-    Array.prototype.forEach.call(list.children, function (li, i) {
-      var absent = !!state[i];
-      if (!absent) present++;
-      li.classList.toggle("absent", absent);
-      li.querySelector(".mark").textContent = absent ? "✕" : "✓";
+    state.forEach(function (s, i) {
+      var li = items[i];
+      li.classList.toggle("ok", s === "");
+      li.classList.toggle("absent", s !== "" && s !== WAIT);
+      li.classList.toggle("wait", s === WAIT);
+      li.querySelector(".state").textContent = label(s);
       Array.prototype.forEach.call(li.querySelectorAll(".reasons button"), function (b) {
-        b.classList.toggle("on", b.dataset.code === state[i]);
+        b.classList.toggle("on", b.dataset.code === s);
       });
     });
+    var c = counts();
     document.getElementById("count").innerHTML =
-      "Присутні <b>" + present + "</b> з " + state.length;
-    var label = "💾 Зберегти · присутні " + present + " з " + state.length;
+      '<span><i class="dot" style="background:var(--ok)"></i><b>' + c.ok + '</b></span>' +
+      '<span><i class="dot" style="background:var(--bad)"></i><b>' + c.bad + '</b></span>' +
+      '<span><i class="dot" style="background:var(--wait)"></i><b>' + c.wait + '</b></span>';
+    document.getElementById("all").style.display = c.wait ? "" : "none";
+    var text = c.wait ? "Відмітьте ще " + c.wait : "Зберегти · присутні " + c.ok + " з " + state.length;
     if (tg && tg.MainButton) {
-      tg.MainButton.setText(label);
+      tg.MainButton.setText(text);
       tg.MainButton.show();
     } else {
-      var s = document.getElementById("save"); s.textContent = label; s.style.display = "block";
+      var s = document.getElementById("save");
+      s.textContent = text; s.style.display = "block"; s.classList.toggle("off", !!c.wait);
     }
   }
 
   function send() {
+    var c = counts();
+    if (c.wait) {
+      try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred("warning"); } catch (e) {}
+      var first = state.indexOf(WAIT);
+      if (first >= 0) items[first].scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     var absent = [];
     state.forEach(function (r, i) { if (r) absent.push([i, r]); });
     var comment = document.getElementById("comment").value.replace(/\s+/g, " ").trim().slice(0, 1000);
