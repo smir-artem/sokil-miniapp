@@ -77,6 +77,34 @@
     display: none;
   }
   #save.off { opacity: .55; }
+  .guests { margin: 12px; background: var(--bg); border-radius: 12px; padding: 10px 14px; }
+  .guests h2 { font-size: 13px; color: var(--hint); font-weight: 600; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .03em; }
+  .guests .g { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+  .guests .g:first-of-type { border-top: 0; }
+  .guests .g .tag { font-size: 11px; border-radius: 10px; padding: 1px 8px; background: var(--bg2); color: var(--hint); }
+  .guests .g .x { border: 0; background: transparent; color: var(--bad); font-size: 18px; padding: 0 4px; }
+  .guests .empty { color: var(--hint); font-size: 13px; padding: 2px 0 6px; }
+  .gbtns { display: flex; gap: 8px; margin-top: 8px; }
+  .gbtns button, .panel .btn {
+    flex: 1; border: 1px solid var(--accent); background: transparent; color: var(--accent);
+    border-radius: 10px; padding: 9px 6px; font-size: 14px; font-weight: 600;
+  }
+  .panel { position: fixed; inset: 0; z-index: 5; background: var(--bg2); overflow-y: auto; display: none; padding-bottom: 90px; }
+  .panel.on { display: block; }
+  .panel header { position: sticky; top: 0; }
+  .panel .box { margin: 10px 12px; background: var(--bg); border-radius: 12px; padding: 10px 14px; }
+  .panel label { display: block; color: var(--hint); font-size: 12px; margin: 8px 0 4px; }
+  .panel input {
+    width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px; font: inherit;
+    color: var(--text); background: var(--bg2);
+  }
+  .panel .pick { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  .panel .pick:first-child { border-top: 0; }
+  .panel .pick .dot { background: var(--line); }
+  .panel .pick.on .dot { background: var(--ok); }
+  .panel .msg { color: var(--bad); font-size: 13px; min-height: 18px; margin-top: 6px; }
+  .panel .row2 { display: flex; gap: 8px; margin: 10px 12px; }
+  .panel .btn.main { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -89,6 +117,33 @@
   </div>
 </header>
 <ul id="list"></ul>
+<div class="guests" id="guests" style="display:none">
+  <h2>Гості (не члени ГО)</h2>
+  <div id="glist"></div>
+  <div class="gbtns">
+    <button type="button" id="btnTrial">🆕 Пробне тренування</button>
+    <button type="button" id="btnSingle">➕ Разовий</button>
+  </div>
+</div>
+<div class="panel" id="pSingle">
+  <header><h1>➕ Разовий</h1><div class="sub">Оберіть дитину зі списку разових або додайте нову</div></header>
+  <div class="box"><input id="find" placeholder="Пошук за прізвищем" autocomplete="off"><div id="singles"></div></div>
+  <div class="row2"><button class="btn" type="button" id="singleNew">🆕 Нова дитина</button>
+    <button class="btn main" type="button" id="singleDone">Готово</button></div>
+</div>
+<div class="panel" id="pForm">
+  <header><h1 id="fTitle">🆕 Пробне тренування</h1><div class="sub" id="fSub">Перша реєстрація дитини</div></header>
+  <div class="box">
+    <label for="fSurname">Прізвище дитини</label><input id="fSurname" maxlength="40" autocomplete="off">
+    <label for="fFirst">Ім'я дитини</label><input id="fFirst" maxlength="40" autocomplete="off">
+    <label for="fYear">Рік народження</label><input id="fYear" inputmode="numeric" maxlength="4" placeholder="2016" autocomplete="off">
+    <label for="fParent">ПІБ того, хто привів</label><input id="fParent" maxlength="80" autocomplete="off">
+    <label for="fPhone">Телефон</label><input id="fPhone" type="tel" maxlength="20" placeholder="+380…" autocomplete="off">
+    <div class="msg" id="fMsg"></div>
+  </div>
+  <div class="row2"><button class="btn" type="button" id="fCancel">Скасувати</button>
+    <button class="btn main" type="button" id="fOk">Додати</button></div>
+</div>
 <div class="note">
   <label for="comment">Коментар (необов'язково) — його отримає директор</label>
   <textarea id="comment" maxlength="1000" placeholder="Наприклад: тренування перенесли на поле"></textarea>
@@ -204,6 +259,106 @@
     state = state.map(function (s) { return s === WAIT ? "" : s; }); render(); haptic();
   });
 
+  // ── Гості: пробне тренування / разові (дані "gs", "r" — разові групи, "gv" — уже відмічені гості) ──
+  var guests = [];  // {k: "p"|"r", id: "Р-0001" або "", f: [хто привів, телефон, прізвище, ім'я, рік], name}
+  var singles = Array.isArray(data.r) ? data.r : [];
+  var panelOpen = false;
+  if (data.gs) {
+    document.getElementById("guests").style.display = "";
+    (Array.isArray(data.gv) ? data.gv : []).forEach(function (g) { guests.push({ k: g[0], id: g[1], name: g[2] }); });
+  }
+  function el(id) { return document.getElementById(id); }
+  function renderGuests() {
+    var box = el("glist");
+    box.innerHTML = "";
+    if (!guests.length) {
+      var e = document.createElement("div");
+      e.className = "empty"; e.textContent = "Немає. Прийшла дитина не з групи — додайте кнопкою нижче.";
+      box.appendChild(e);
+    }
+    guests.forEach(function (g, n) {
+      var row = document.createElement("div");
+      row.className = "g";
+      var tag = document.createElement("span");
+      tag.className = "tag"; tag.textContent = g.k === "p" ? "пробне" : "разове";
+      var name = document.createElement("span");
+      name.className = "name"; name.textContent = g.name + (g.id ? "" : " · нова");
+      var x = document.createElement("button");
+      x.className = "x"; x.type = "button"; x.textContent = "×";
+      x.addEventListener("click", function () { guests.splice(n, 1); renderGuests(); render(); haptic(); });
+      row.appendChild(tag); row.appendChild(name); row.appendChild(x);
+      box.appendChild(row);
+    });
+  }
+  function openPanel(id) {
+    panelOpen = true;
+    el(id).classList.add("on");
+    try { tg && tg.MainButton && tg.MainButton.hide(); } catch (e) {}
+    el("save").style.display = "none";
+  }
+  function closePanels() {
+    panelOpen = false;
+    el("pSingle").classList.remove("on"); el("pForm").classList.remove("on");
+    renderGuests(); render();
+  }
+  function hasSingle(id) { return guests.some(function (g) { return g.k === "r" && g.id === id; }); }
+  function renderSingles() {
+    var q = el("find").value.trim().toLowerCase(), box = el("singles");
+    box.innerHTML = "";
+    var shown = singles.filter(function (s) { return !q || s[1].toLowerCase().indexOf(q) >= 0; });
+    if (!shown.length) {
+      var e = document.createElement("div");
+      e.className = "empty"; e.style.color = "var(--hint)"; e.style.padding = "10px 0";
+      e.textContent = singles.length ? "Нікого не знайдено — додайте нову дитину." : "Разових у цій групі ще немає — додайте нову дитину.";
+      box.appendChild(e);
+    }
+    shown.forEach(function (s) {
+      var row = document.createElement("div");
+      row.className = "pick" + (hasSingle(s[0]) ? " on" : "");
+      var dot = document.createElement("span"); dot.className = "dot";
+      var name = document.createElement("span"); name.className = "name"; name.textContent = s[1];
+      row.appendChild(dot); row.appendChild(name);
+      row.addEventListener("click", function () {
+        if (hasSingle(s[0])) guests = guests.filter(function (g) { return !(g.k === "r" && g.id === s[0]); });
+        else guests.push({ k: "r", id: s[0], name: s[1] });
+        renderSingles(); haptic();
+      });
+      box.appendChild(row);
+    });
+  }
+  var formKind = "p";
+  function openForm(kind) {
+    formKind = kind;
+    el("fTitle").textContent = kind === "p" ? "🆕 Пробне тренування" : "➕ Разовий — нова дитина";
+    el("fSub").textContent = kind === "p" ? "Перша реєстрація дитини, яка прийшла на пробне"
+                                          : "Дитина ще жодного разу не приходила разово";
+    ["fSurname", "fFirst", "fYear", "fParent", "fPhone"].forEach(function (id) { el(id).value = ""; });
+    el("fMsg").textContent = "";
+    el("pSingle").classList.remove("on");
+    openPanel("pForm");
+    setTimeout(function () { el("fSurname").focus(); }, 50);
+  }
+  function formOk() {
+    var v = function (id) { return el(id).value.replace(/\s+/g, " ").trim(); };
+    var surname = v("fSurname"), first = v("fFirst"), year = v("fYear"), parent = v("fParent"), phone = v("fPhone");
+    var now = new Date().getFullYear(), msg = "";
+    if (surname.length < 2 || !first) msg = "Вкажіть прізвище та ім'я дитини.";
+    else if (!/^\d{4}$/.test(year) || +year < now - 25 || +year > now) msg = "Вкажіть рік народження, наприклад 2016.";
+    else if (parent.length < 2) msg = "Вкажіть, хто привів дитину (ПІБ).";
+    else if ((phone.match(/\d/g) || []).length < 9) msg = "Вкажіть телефон, наприклад +380501234567.";
+    if (msg) { el("fMsg").textContent = msg; try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred("error"); } catch (e) {} return; }
+    var same = guests.some(function (g) { return g.f && g.f[2].toLowerCase() === surname.toLowerCase() && g.f[3].toLowerCase() === first.toLowerCase(); });
+    if (!same) guests.push({ k: formKind, id: "", f: [parent, phone, surname, first, year], name: surname + " " + first });
+    closePanels(); haptic();
+  }
+  el("btnTrial").addEventListener("click", function () { openForm("p"); });
+  el("btnSingle").addEventListener("click", function () { el("find").value = ""; renderSingles(); openPanel("pSingle"); });
+  el("find").addEventListener("input", renderSingles);
+  el("singleNew").addEventListener("click", function () { openForm("r"); });
+  el("singleDone").addEventListener("click", closePanels);
+  el("fCancel").addEventListener("click", closePanels);
+  el("fOk").addEventListener("click", formOk);
+
   function haptic() {
     try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {}
   }
@@ -237,7 +392,9 @@
       '<span><i class="dot" style="background:var(--bad)"></i><b>' + c.bad + '</b></span>' +
       '<span><i class="dot" style="background:var(--wait)"></i><b>' + c.wait + '</b></span>';
     document.getElementById("all").style.display = c.wait ? "" : "none";
-    var text = c.wait ? "Відмітьте ще " + c.wait : "Зберегти · присутні " + c.ok + " з " + state.length;
+    var text = c.wait ? "Відмітьте ще " + c.wait : "Зберегти · присутні " + c.ok + " з " + state.length
+      + (guests.length ? " + гостей " + guests.length : "");
+    if (panelOpen) return;
     if (tg && tg.MainButton) {
       tg.MainButton.setText(text);
       tg.MainButton.show();
@@ -248,6 +405,7 @@
   }
 
   function send() {
+    if (panelOpen) return;
     var c = counts();
     if (c.wait) {
       try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred("warning"); } catch (e) {}
@@ -258,7 +416,12 @@
     var absent = [];
     state.forEach(function (r, i) { if (r) absent.push([i, r]); });
     var comment = document.getElementById("comment").value.replace(/\s+/g, " ").trim().slice(0, 1000);
-    var payload = JSON.stringify({ v: 1, t: data.t, a: absent, c: comment });
+    var msg = { v: 1, t: data.t, a: absent, c: comment };
+    if (data.gs) {
+      msg.g = guests.filter(function (g) { return g.id; }).map(function (g) { return [g.k, g.id]; });
+      msg.gn = guests.filter(function (g) { return !g.id; }).map(function (g) { return [g.k].concat(g.f); });
+    }
+    var payload = JSON.stringify(msg);
     if (tg && tg.sendData) {
       tg.sendData(payload);  // Telegram передає відповідь боту і закриває сторінку
     } else {
@@ -268,6 +431,7 @@
 
   if (tg && tg.MainButton) tg.MainButton.onClick(send);
   document.getElementById("save").addEventListener("click", send);
+  renderGuests();
   render();
 })();
 </script>
