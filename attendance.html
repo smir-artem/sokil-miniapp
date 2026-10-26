@@ -94,8 +94,8 @@
   .panel header { position: sticky; top: 0; }
   .panel .box { margin: 10px 12px; background: var(--bg); border-radius: 12px; padding: 10px 14px; }
   .panel label { display: block; color: var(--hint); font-size: 12px; margin: 8px 0 4px; }
-  .panel input {
-    width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px; font: inherit;
+  .panel input, .panel textarea {
+    width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 9px; font: inherit;
     color: var(--text); background: var(--bg2);
   }
   .panel .pick { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
@@ -142,6 +142,7 @@
     <label for="fYear">Рік народження</label><input id="fYear" inputmode="numeric" maxlength="4" placeholder="2016" autocomplete="off">
     <label for="fParent">ПІБ того, хто привів</label><input id="fParent" maxlength="80" autocomplete="off">
     <label for="fPhone">Телефон</label><input id="fPhone" type="tel" maxlength="20" placeholder="+380…" autocomplete="off">
+    <div id="fNoteBox"><label for="fNote">Коментар тренера (необов'язково)</label><textarea id="fNote" maxlength="300" rows="3" placeholder="Як проявила себе дитина, про що домовились з батьками…"></textarea></div>
     <div class="msg" id="fMsg"></div>
   </div>
   <div class="row2"><button class="btn" type="button" id="fCancel">Скасувати</button>
@@ -343,7 +344,8 @@
     el("fTitle").textContent = kind === "p" ? "🆕 Пробне тренування" : "➕ Разовий — нова дитина";
     el("fSub").textContent = kind === "p" ? "Перша реєстрація дитини, яка прийшла на пробне"
                                           : "Дитина ще жодного разу не приходила разово";
-    ["fSurname", "fFirst", "fYear", "fParent", "fPhone"].forEach(function (id) { el(id).value = ""; });
+    ["fSurname", "fFirst", "fYear", "fParent", "fPhone", "fNote"].forEach(function (id) { el(id).value = ""; });
+    el("fNoteBox").style.display = kind === "p" ? "" : "none";  // коментар — лише для пробного (рішення 26.10.2026)
     el("fMsg").textContent = "";
     el("pSingle").classList.remove("on");
     openPanel("pForm");
@@ -359,7 +361,9 @@
     else if ((phone.match(/\d/g) || []).length < 9) msg = "Вкажіть телефон, наприклад +380501234567.";
     if (msg) { el("fMsg").textContent = msg; try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred("error"); } catch (e) {} return; }
     var same = guests.some(function (g) { return g.f && g.f[2].toLowerCase() === surname.toLowerCase() && g.f[3].toLowerCase() === first.toLowerCase(); });
-    if (!same) guests.push({ k: formKind, id: "", f: [parent, phone, surname, first, year], name: surname + " " + first });
+    var f = [parent, phone, surname, first, year];
+    if (formKind === "p" && v("fNote")) f.push(v("fNote").slice(0, 300));
+    if (!same) guests.push({ k: formKind, id: "", f: f, name: surname + " " + first });
     closePanels(); haptic();
   }
   el("btnTrial").addEventListener("click", function () { openForm("p"); });
