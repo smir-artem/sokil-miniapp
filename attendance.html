@@ -100,6 +100,9 @@
   }
   .panel .pick { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
   .panel .pick:first-child { border-top: 0; }
+  .panel .yr { font-size: 13px; font-weight: 600; color: var(--hint); padding: 12px 0 2px; }
+  .panel .yr:first-child { padding-top: 8px; }
+  .panel .yr + .pick { border-top: 0; }
   .panel .pick .dot { background: var(--line); }
   .panel .pick.on .dot { background: var(--ok); }
   .panel .msg { color: var(--bad); font-size: 13px; min-height: 18px; margin-top: 6px; }
@@ -309,10 +312,18 @@
     if (!shown.length) {
       var e = document.createElement("div");
       e.className = "empty"; e.style.color = "var(--hint)"; e.style.padding = "10px 0";
-      e.textContent = singles.length ? "Нікого не знайдено — додайте нову дитину." : "Разових у цій групі ще немає — додайте нову дитину.";
+      e.textContent = singles.length ? "Нікого не знайдено — додайте нову дитину." : "Разових ще немає — додайте нову дитину.";
       box.appendChild(e);
     }
+    var lastYear = null;
     shown.forEach(function (s) {
+      var yr = s.length > 2 ? String(s[2] || "") : "";
+      if (yr !== lastYear) {  // заголовок року: від наймолодших до найстарших (порядок задає бот)
+        var h = document.createElement("div");
+        h.className = "yr"; h.textContent = yr ? yr + " р. н." : "Рік не вказано";
+        box.appendChild(h);
+        lastYear = yr;
+      }
       var row = document.createElement("div");
       row.className = "pick" + (hasSingle(s[0]) ? " on" : "");
       var dot = document.createElement("span"); dot.className = "dot";
