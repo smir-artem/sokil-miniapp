@@ -124,7 +124,7 @@
   <h2>Гості (не члени ГО)</h2>
   <div id="glist"></div>
   <div class="gbtns">
-    <button type="button" id="btnTrial">🆕 Пробне тренування</button>
+    <button type="button" id="btnTrial">🆕 Ознайомче тренування</button>
     <button type="button" id="btnSingle">➕ Разовий</button>
   </div>
 </div>
@@ -135,7 +135,7 @@
     <button class="btn main" type="button" id="singleDone">Готово</button></div>
 </div>
 <div class="panel" id="pForm">
-  <header><h1 id="fTitle">🆕 Пробне тренування</h1><div class="sub" id="fSub">Перша реєстрація дитини</div></header>
+  <header><h1 id="fTitle">🆕 Ознайомче тренування</h1><div class="sub" id="fSub">Перша реєстрація дитини</div></header>
   <div class="box">
     <label for="fSurname">Прізвище дитини</label><input id="fSurname" maxlength="40" autocomplete="off">
     <label for="fFirst">Ім'я дитини</label><input id="fFirst" maxlength="40" autocomplete="off">
@@ -263,7 +263,7 @@
     state = state.map(function (s) { return s === WAIT ? "" : s; }); render(); haptic();
   });
 
-  // ── Гості: пробне тренування / разові (дані "gs", "r" — разові групи, "gv" — уже відмічені гості) ──
+  // ── Гості: ознайомче тренування / разові (дані "gs", "r" — разові групи, "gv" — уже відмічені гості) ──
   var guests = [];  // {k: "p"|"r", id: "Р-0001" або "", f: [хто привів, телефон, прізвище, ім'я, рік], name}
   var singles = Array.isArray(data.r) ? data.r : [];
   var panelOpen = false;
@@ -284,7 +284,7 @@
       var row = document.createElement("div");
       row.className = "g";
       var tag = document.createElement("span");
-      tag.className = "tag"; tag.textContent = g.k === "p" ? "пробне" : "разове";
+      tag.className = "tag"; tag.textContent = g.k === "p" ? "ознайомче" : "разове";
       var name = document.createElement("span");
       name.className = "name"; name.textContent = g.name + (g.id ? "" : " · нова");
       var x = document.createElement("button");
@@ -341,11 +341,11 @@
   var formKind = "p";
   function openForm(kind) {
     formKind = kind;
-    el("fTitle").textContent = kind === "p" ? "🆕 Пробне тренування" : "➕ Разовий — нова дитина";
-    el("fSub").textContent = kind === "p" ? "Перша реєстрація дитини, яка прийшла на пробне"
+    el("fTitle").textContent = kind === "p" ? "🆕 Ознайомче тренування" : "➕ Разовий — нова дитина";
+    el("fSub").textContent = kind === "p" ? "Перша реєстрація дитини, яка прийшла на ознайомче"
                                           : "Дитина ще жодного разу не приходила разово";
     ["fSurname", "fFirst", "fYear", "fParent", "fPhone", "fNote"].forEach(function (id) { el(id).value = ""; });
-    el("fNoteBox").style.display = kind === "p" ? "" : "none";  // коментар — лише для пробного (рішення 26.10.2026)
+    el("fNoteBox").style.display = kind === "p" ? "" : "none";  // коментар — лише для ознайомчого (рішення 26.10.2026)
     el("fMsg").textContent = "";
     el("pSingle").classList.remove("on");
     openPanel("pForm");
