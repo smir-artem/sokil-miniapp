@@ -84,6 +84,15 @@
   .guests .g .tag { font-size: 11px; border-radius: 10px; padding: 1px 8px; background: var(--bg2); color: var(--hint); }
   .guests .g .x { border: 0; background: transparent; color: var(--bad); font-size: 18px; padding: 0 4px; }
   .guests .empty { color: var(--hint); font-size: 13px; padding: 2px 0 6px; }
+  .guests h3 { font-size: 12px; color: var(--hint); font-weight: 600; margin: 4px 0 2px; }
+  .pt { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-top: 1px solid var(--line); }
+  .pt:first-of-type { border-top: 0; }
+  .pt .name { flex: 1; }
+  .pt .warn { display: block; font-size: 11px; color: var(--hint); }
+  .pt button { border: 1px solid var(--line); background: transparent; color: var(--hint); border-radius: 14px; padding: 4px 10px; font-size: 13px; }
+  .pt button.yes.on { border-color: var(--ok); color: var(--ok); font-weight: 600; }
+  .pt button.no.on { border-color: var(--bad); color: var(--bad); font-weight: 600; }
+  #ptbox { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
   .gbtns { display: flex; gap: 8px; margin-top: 8px; }
   .gbtns button, .panel .btn {
     flex: 1; border: 1px solid var(--accent); background: transparent; color: var(--accent);
@@ -122,9 +131,10 @@
 <ul id="list"></ul>
 <div class="guests" id="guests" style="display:none">
   <h2>Гості (не члени ГО)</h2>
+  <div id="ptbox" style="display:none"><h3>🆕 Записані на ознайомче</h3><div id="ptlist"></div></div>
   <div id="glist"></div>
   <div class="gbtns">
-    <button type="button" id="btnTrial">🆕 Ознайомче тренування</button>
+    <button type="button" id="btnTrial">➕ Ознайомче тренування</button>
     <button type="button" id="btnSingle">➕ Разовий</button>
   </div>
 </div>
@@ -135,7 +145,7 @@
     <button class="btn main" type="button" id="singleDone">Готово</button></div>
 </div>
 <div class="panel" id="pForm">
-  <header><h1 id="fTitle">🆕 Ознайомче тренування</h1><div class="sub" id="fSub">Перша реєстрація дитини</div></header>
+  <header><h1 id="fTitle">➕ Ознайомче тренування</h1><div class="sub" id="fSub">Перша реєстрація дитини</div></header>
   <div class="box">
     <label for="fSurname">Прізвище дитини</label><input id="fSurname" maxlength="40" autocomplete="off">
     <label for="fFirst">Ім'я дитини</label><input id="fFirst" maxlength="40" autocomplete="off">
@@ -267,10 +277,37 @@
   var guests = [];  // {k: "p"|"r", id: "Р-0001" або "", f: [хто привів, телефон, прізвище, ім'я, рік], name}
   var singles = Array.isArray(data.r) ? data.r : [];
   var panelOpen = false;
+  // 2.7.0: "pt" — записані на ознайомче через Сокіл Цифровий: [№ заявки, ім'я, рік, не за віком, відмітка "y"/"n"/"", ID ПР-]
+  var pt = Array.isArray(data.pt) ? data.pt : [];
+  var ptMark = {}, ptGids = [];
+  pt.forEach(function (p) { ptMark[p[0]] = p[4] || ""; if (p[5]) ptGids.push(p[5]); });
   if (data.gs) {
     document.getElementById("guests").style.display = "";
-    (Array.isArray(data.gv) ? data.gv : []).forEach(function (g) { guests.push({ k: g[0], id: g[1], name: g[2] }); });
+    (Array.isArray(data.gv) ? data.gv : []).forEach(function (g) {
+      if (g[0] === "p" && ptGids.indexOf(g[1]) >= 0) return;  // уже є в «Записані на ознайомче»
+      guests.push({ k: g[0], id: g[1], name: g[2] });
+    });
   }
+  function renderPt() {
+    var box = document.getElementById("ptlist");
+    if (!pt.length) return;
+    document.getElementById("ptbox").style.display = "";
+    box.innerHTML = "";
+    pt.forEach(function (p) {
+      var row = document.createElement("div"); row.className = "pt";
+      var name = document.createElement("span"); name.className = "name";
+      name.textContent = p[1] + ", " + p[2];
+      if (p[3]) { var w = document.createElement("span"); w.className = "warn"; w.textContent = "⚠️ не за віком"; name.appendChild(w); }
+      var yes = document.createElement("button"); yes.type = "button"; yes.className = "yes" + (ptMark[p[0]] === "y" ? " on" : "");
+      yes.textContent = "✅ Прийшов";
+      var no = document.createElement("button"); no.type = "button"; no.className = "no" + (ptMark[p[0]] === "n" ? " on" : "");
+      no.textContent = "❌";
+      yes.addEventListener("click", function () { ptMark[p[0]] = ptMark[p[0]] === "y" ? "" : "y"; renderPt(); render(); haptic(); });
+      no.addEventListener("click", function () { ptMark[p[0]] = ptMark[p[0]] === "n" ? "" : "n"; renderPt(); render(); haptic(); });
+      row.appendChild(name); row.appendChild(yes); row.appendChild(no); box.appendChild(row);
+    });
+  }
+  function ptCame() { return pt.filter(function (p) { return ptMark[p[0]] === "y"; }).length; }
   function el(id) { return document.getElementById(id); }
   function renderGuests() {
     var box = el("glist");
@@ -341,7 +378,7 @@
   var formKind = "p";
   function openForm(kind) {
     formKind = kind;
-    el("fTitle").textContent = kind === "p" ? "🆕 Ознайомче тренування" : "➕ Разовий — нова дитина";
+    el("fTitle").textContent = kind === "p" ? "➕ Ознайомче тренування" : "➕ Разовий — нова дитина";
     el("fSub").textContent = kind === "p" ? "Перша реєстрація дитини, яка прийшла на ознайомче"
                                           : "Дитина ще жодного разу не приходила разово";
     ["fSurname", "fFirst", "fYear", "fParent", "fPhone", "fNote"].forEach(function (id) { el(id).value = ""; });
@@ -408,7 +445,7 @@
       '<span><i class="dot" style="background:var(--wait)"></i><b>' + c.wait + '</b></span>';
     document.getElementById("all").style.display = c.wait ? "" : "none";
     var text = c.wait ? "Відмітьте ще " + c.wait : "Зберегти · присутні " + c.ok + " з " + state.length
-      + (guests.length ? " + гостей " + guests.length : "");
+      + ((guests.length + ptCame()) ? " + гостей " + (guests.length + ptCame()) : "");
     if (panelOpen) return;
     if (tg && tg.MainButton) {
       tg.MainButton.setText(text);
@@ -436,6 +473,7 @@
       msg.g = guests.filter(function (g) { return g.id; }).map(function (g) { return [g.k, g.id]; });
       msg.gn = guests.filter(function (g) { return !g.id; }).map(function (g) { return [g.k].concat(g.f); });
     }
+    if (pt.length) msg.pt = pt.map(function (p) { return [p[0], ptMark[p[0]] || ""]; });
     var payload = JSON.stringify(msg);
     if (tg && tg.sendData) {
       tg.sendData(payload);  // Telegram передає відповідь боту і закриває сторінку
@@ -447,6 +485,7 @@
   if (tg && tg.MainButton) tg.MainButton.onClick(send);
   document.getElementById("save").addEventListener("click", send);
   renderGuests();
+  renderPt();
   render();
 })();
 </script>
