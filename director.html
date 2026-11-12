@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Сокіл Цифровий · Кабінет директора</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,900&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* Сокіл Цифровий — кабінет директора (2.13.0, ДЕМО). Клубні кольори (брендбук): жовтий #FFEC02, чорний, білий;
+   Montserrat, акцентні заголовки — Black Italic; стиль Borussia Dortmund. Дві теми: темна (типово) і світла. */
+:root{
+  --y:#FFEC02; --on-y:#0A0A0A;
+  --bg:#0A0A0A; --side:#000; --panel:#111; --card:#161616; --card2:#1D1D1D; --line:#262626;
+  --text:#FFFFFF; --sub:#A8A8A8; --ink:#FFEC02;
+  --ok:#5BE49B; --okb:#12301F; --wr:#FFB04D; --wrb:#3A2400; --er:#FF8A80; --erb:#3A1210; --in:#7CC4FF; --inb:#10243A;
+  --shadow:0 1px 0 rgba(255,255,255,.04);
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#F4F4F1; --side:#0A0A0A; --panel:#FFFFFF; --card:#FFFFFF; --card2:#F7F7F4; --line:#E3E3DE;
+  --text:#0A0A0A; --sub:#5F5F5A; --ink:#0A0A0A;
+  --ok:#14713A; --okb:#E2F4E8; --wr:#8F5400; --wrb:#FFF0D2; --er:#B3261E; --erb:#FCE7E5; --in:#0B5CAD; --inb:#E4EFFB;
+  --shadow:0 1px 2px rgba(0,0,0,.06);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 'Montserrat',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+a{color:inherit}
+.app{display:grid;grid-template-columns:240px 1fr;height:100vh;height:100dvh}
+/* ── бокове меню (завжди чорне, як шапки BVB) ── */
+.side{background:var(--side);color:#fff;display:flex;flex-direction:column;min-height:0;border-right:1px solid #1a1a1a}
+.brand{padding:18px 18px 14px;border-bottom:1px solid #1f1f1f}
+.brand b{display:block;font-weight:900;font-style:italic;font-size:21px;letter-spacing:.3px;line-height:1.05;text-transform:uppercase}
+.brand b span{color:var(--y)}
+.brand small{display:block;color:#9a9a9a;font-size:11px;margin-top:6px;letter-spacing:.4px;text-transform:uppercase}
+.nav{flex:1;overflow:auto;padding:10px 8px}
+.nav button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:10px;cursor:pointer;color:#d8d8d8;font-weight:600;font-size:13.5px}
+.nav button:hover{background:#151515;color:#fff}
+.nav button.on{background:var(--y);color:#000}
+.nav .ic{width:22px;text-align:center;font-size:16px}
+.nav .cnt{margin-left:auto;background:#262626;color:#fff;border-radius:20px;padding:1px 8px;font-size:11.5px;font-weight:700}
+.nav button.on .cnt{background:#000;color:var(--y)}
+.nav .cnt.hot{background:var(--er);color:#000}
+.side-foot{padding:12px 16px;border-top:1px solid #1f1f1f;font-size:11.5px;color:#8a8a8a}
+.side-foot .who{color:#fff;font-weight:700;font-size:12.5px}
+/* ── основна частина ── */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.top{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.top h1{margin:0;font-weight:900;font-style:italic;font-size:20px;text-transform:uppercase;letter-spacing:.2px;white-space:nowrap}
+.top .sp{flex:1}
+.search{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-width:220px}
+.search input{all:unset;flex:1;font-size:13px}
+.iconbtn{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-weight:600;font-size:12.5px;white-space:nowrap;background:var(--card)}
+.iconbtn:hover{border-color:var(--sub)}
+.demo-flag{background:var(--y);color:#000;font-weight:800;font-size:11px;padding:3px 8px;border-radius:6px;letter-spacing:.4px}
+.content{flex:1;min-height:0;overflow:auto;padding:18px 20px 40px}
+.content.split{display:grid;grid-template-columns:minmax(300px,400px) 1fr;gap:0;padding:0;overflow:hidden}
+.pane{min-height:0;overflow:auto}
+.pane.list{border-right:1px solid var(--line);background:var(--panel)}
+.pane.detail{padding:20px 24px 40px}
+.btn.mback{display:none}
+/* ── елементи ── */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px 6px}
+.tab{all:unset;cursor:pointer;padding:6px 12px;border-radius:20px;border:1px solid var(--line);font-weight:600;font-size:12.5px;background:var(--card)}
+.tab.on{background:var(--y);border-color:var(--y);color:#000}
+.tab .n{opacity:.7;margin-left:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:4px 14px 10px}
+.chip{all:unset;cursor:pointer;padding:3px 9px;border-radius:8px;font-size:12px;border:1px dashed var(--line);color:var(--sub)}
+.chip.on{border-style:solid;border-color:var(--text);color:var(--text)}
+.row{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:11px 14px;cursor:pointer}
+.row:hover{background:var(--card2)}
+.row.sel{background:var(--card2);box-shadow:inset 3px 0 0 var(--y)}
+.row .t{display:flex;gap:8px;align-items:baseline}
+.row .t b{font-weight:700;font-size:13.5px}
+.row .t .r{margin-left:auto;color:var(--sub);font-size:11.5px;white-space:nowrap}
+.row .s{color:var(--sub);font-size:12.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-new{background:var(--y);color:#000}.b-ok{background:var(--okb);color:var(--ok)}.b-wr{background:var(--wrb);color:var(--wr)}
+.b-er{background:var(--erb);color:var(--er)}.b-in{background:var(--inb);color:var(--in)}.b-mute{background:var(--card2);color:var(--sub);border:1px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpi{position:relative;overflow:hidden}
+.kpi .l{color:var(--sub);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.kpi .v{font-size:30px;font-weight:900;font-style:italic;line-height:1.1;margin-top:6px}
+.kpi .d{color:var(--sub);font-size:12px;margin-top:2px}
+.kpi.y{background:var(--y);border-color:var(--y);color:#000}.kpi.y .l,.kpi.y .d{color:#2a2a00}
+.kpi.click{cursor:pointer}.kpi.click:hover{border-color:var(--sub)}
+h2{font-weight:900;font-style:italic;text-transform:uppercase;font-size:16px;margin:22px 0 10px;letter-spacing:.2px}
+h2:first-child{margin-top:0}
+h3{font-size:14px;font-weight:800;margin:16px 0 8px}
+.muted{color:var(--sub)}
+.small{font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--sub);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--card2)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-weight:700;font-size:13px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
+.btn:hover{border-color:var(--sub)}
+.btn.p{background:var(--y);border-color:var(--y);color:#000}
+.btn.p:hover{filter:brightness(.95)}
+.btn.ok{background:var(--okb);border-color:transparent;color:var(--ok)}
+.btn.er{background:var(--erb);border-color:transparent;color:var(--er)}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.dhead{display:flex;gap:12px;align-items:flex-start}
+.dhead .ttl{font-weight:900;font-style:italic;font-size:22px;text-transform:uppercase;line-height:1.15}
+.meta{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;font-size:13px;margin:12px 0}
+.meta dt{color:var(--sub)}.meta dd{margin:0}
+.body{white-space:pre-wrap;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.files{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.file{width:132px;border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;background:var(--card)}
+.file img{display:block;width:100%;height:96px;object-fit:cover;background:#fff}
+.file div{font-size:11.5px;padding:6px 8px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist{border-left:2px solid var(--line);margin:8px 0 0 6px;padding-left:14px}
+.hist div{position:relative;margin:0 0 10px;font-size:12.5px}
+.hist div:before{content:"";position:absolute;left:-20px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--y)}
+.hist i{color:var(--sub);font-style:normal;margin-right:6px}
+.msg{max-width:78%;border-radius:14px;padding:10px 12px;margin:8px 0;border:1px solid var(--line);background:var(--card)}
+.msg.me{margin-left:auto;background:var(--y);color:#000;border-color:var(--y)}
+.msg.pres{border-color:var(--in);background:var(--inb)}
+.msg small{display:block;opacity:.7;font-size:11px;margin-bottom:3px;font-weight:700}
+.empty{color:var(--sub);text-align:center;padding:60px 20px}
+.empty b{display:block;font-size:40px;margin-bottom:6px}
+.bar{height:8px;border-radius:6px;background:var(--card2);overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--y)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{all:unset;cursor:pointer;padding:6px 12px;font-weight:600;font-size:12.5px;background:var(--card)}
+.seg button.on{background:var(--y);color:#000}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.ev{display:grid;grid-template-columns:96px 1fr auto;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.ev .tm{font-weight:700;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.switch{all:unset;cursor:pointer;width:38px;height:22px;border-radius:20px;background:var(--line);position:relative;flex:none}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.switch.on{background:var(--y)}.switch.on:after{left:19px;background:#000}
+.setrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.setrow div{flex:1}
+.pres-preview{border:2px dashed var(--in);border-radius:14px;padding:14px;margin-top:14px}
+.tg{background:#17212B;color:#fff;border-radius:12px;padding:12px;font-size:13px;max-width:420px}
+:root[data-theme="light"] .tg{background:#EAF2FA;color:#000}
+.tg .kb{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
+.tg .kb span{background:rgba(255,255,255,.12);border-radius:6px;text-align:center;padding:6px;font-size:12px}
+:root[data-theme="light"] .tg .kb span{background:#fff}
+/* модальне вікно */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:min(560px,100%);max-height:90vh;overflow:auto;padding:20px}
+.modal h3{margin:0 0 12px;font-weight:900;font-style:italic;text-transform:uppercase;font-size:17px}
+.modal label{display:block;font-size:12px;color:var(--sub);font-weight:600;margin:12px 0 4px}
+.modal textarea,.modal input,.modal select{width:100%;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:inherit}
+.modal textarea{min-height:90px;resize:vertical}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{all:unset;cursor:pointer;padding:6px 12px;border-radius:9px;border:1px solid var(--line);font-weight:600;font-size:12.5px;background:var(--card)}
+.opt.on{background:var(--y);border-color:var(--y);color:#000}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#000;color:#fff;border:1px solid var(--y);padding:10px 16px;border-radius:12px;font-size:13px;z-index:60;box-shadow:0 6px 24px rgba(0,0,0,.4);max-width:90vw}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:70;display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:20px}
+.viewer img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
+pre.out{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px;white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:0}
+.yline{height:4px;background:var(--y);border-radius:2px;width:48px;margin:6px 0 0}
+/* вузький екран (телефон) */
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .side{flex-direction:row;align-items:center;border-right:0;border-bottom:1px solid #1a1a1a;overflow:hidden}
+  .brand{border:0;padding:10px 12px}.brand b{font-size:15px}.brand small,.side-foot{display:none}
+  .nav{display:flex;gap:4px;overflow-x:auto;padding:8px}
+  .nav button{width:auto;white-space:nowrap;padding:7px 10px}
+  .top{padding:10px 14px;flex-wrap:wrap}.search{min-width:0;flex:1 1 100%;order:5}
+  .content{padding:14px}
+  .content.split{grid-template-columns:1fr}
+  .content.split.has-sel .pane.list{display:none}
+  .content.split:not(.has-sel) .pane.detail{display:none}
+  .btn.mback{display:inline-flex;margin-bottom:10px}
+  .g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g2{grid-template-columns:1fr}
+  .pane.detail{padding:14px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><b>Сокіл <span>Цифровий</span></b><small>Кабінет виконавчого директора</small></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot"><div class="who" id="who">Демо-директор</div><div id="clock"></div></div>
+  </aside>
+  <main class="main">
+    <header class="top">
+      <h1 id="title">Головна</h1>
+      <span class="demo-flag" title="Дані вигадані; дії нічого не змінюють у системі">ДЕМО</span>
+      <span class="sp"></span>
+      <label class="search"><span>🔎</span><input id="q" placeholder="Пошук: член ГО, дитина, № картки…" autocomplete="off"></label>
+      <button class="iconbtn" id="themeBtn" title="Тема">🌙 Темна</button>
+      <button class="iconbtn" id="fsBtn" title="На весь екран">⛶</button>
+    </header>
+    <section class="content" id="content"></section>
+  </main>
+</div>
+<script>
+"use strict";
+/* ═══════════════════════════ ДЕМО-ДАНІ ═══════════════════════════
+   Усі люди, номери й суми вигадані. Справжніх персональних даних тут немає (сторінка в публічному репозиторії).
+   Етап 2: шар API (нижче) замість DEMO звертатиметься до Сокіл Цифровий — екрани не зміняться. */
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const pick = a => a[Math.floor(rnd() * a.length)];
+const SUR = ["Коваленко","Бондаренко","Ткаченко","Кравченко","Шевчук","Мельник","Олійник","Поліщук","Лисенко","Руденко","Савченко","Петренко","Марченко","Клименко","Павленко","Левченко","Гуменюк","Захарченко","Остапчук","Яковенко","Тимошенко","Гончар","Демченко","Сидоренко","Мороз","Литвин","Кузьмич","Зінченко","Онищенко","Білик"];
+const BOY = ["Андрій","Максим","Артем","Назар","Марк","Матвій","Денис","Іван","Данило","Тимур","Захар","Олександр","Михайло","Кирило","Богдан","Святослав","Ярослав","Влад","Роман","Нікіта"];
+const MOM = ["Олена","Ірина","Наталія","Оксана","Тетяна","Юлія","Світлана","Марія","Катерина","Вікторія","Анна","Людмила"];
+const DAD = ["Сергій","Олег","Віталій","Дмитро","Ігор","Василь","Павло","Юрій","Руслан","Євген"];
+const PAT_M = ["Миколаївна","Петрівна","Іванівна","Сергіївна","Олегівна","Василівна","Андріївна"];
+const PAT_D = ["Миколайович","Петрович","Іванович","Сергійович","Олегович","Васильович","Андрійович"];
+const FEE = 2500;
+const COACHES = [
+  {id:"T1", name:"Бондар Олег Вікторович", role:"Старший тренер", tg:true, access:"Суми"},
+  {id:"T2", name:"Гриценко Віталій Ігорович", role:"Старший тренер", tg:true, access:"Суми"},
+  {id:"T3", name:"Мазур Дмитро Олександрович", role:"Старший тренер", tg:true, access:"Без сум"},
+  {id:"T4", name:"Ковальчук Андрій Сергійович", role:"Тренер", tg:true, access:"Без сум"},
+  {id:"T5", name:"Савчук Ігор Петрович", role:"Тренер", tg:false, access:"Без сум"},
+  {id:"T6", name:"Остапенко Роман Юрійович", role:"Асистент", tg:true, access:"Без сум"},
+];
+const GROUPS = [
+  {g:"2011-2012", senior:"T1", coaches:["T1","T6"], n:10},
+  {g:"2012-2013", senior:"T1", coaches:["T1","T6"], n:14},
+  {g:"2014-2015", senior:"T2", coaches:["T2","T4"], n:16},
+  {g:"2014-2015(2)", senior:"T2", coaches:["T2"], n:11},
+  {g:"2016-2017", senior:"T3", coaches:["T3","T4"], n:21},
+  {g:"2016-2017(2)", senior:"T3", coaches:["T3","T5"], n:8},
+  {g:"2018", senior:"T3", coaches:["T3","T5"], n:27},
+  {g:"2019", senior:"T2", coaches:["T2","T5"], n:19},
+  {g:"2020+", senior:"T1", coaches:["T1","T6"], n:9},
+];
+const coach = id => COACHES.find(c => c.id === id) || {name:"—"};
+const short = n => { const p = n.split(" "); return p[0] + " " + (p[1] || "").charAt(0) + "."; };
+const fmt = n => (Math.round(n)).toLocaleString("uk-UA").replace(/,/g, " ") + " грн";
+const MONTHS = ["вересень","жовтень","листопад","грудень","січень","лютий","березень","квітень","травень","червень"];
+const NOW_MONTH = 2; // листопад
+
+const members = [], kids = [];
+let mN = 1000, kN = 1000;
+GROUPS.forEach(G => {
+  const y0 = parseInt(G.g, 10) || 2020;
+  for (let i = 0; i < G.n; i++) {
+    const sur = pick(SUR), mom = rnd() < .75;
+    let m;
+    if (rnd() < .1 && members.length > 5) { m = pick(members); } // брати й сестри — той самий член ГО
+    else {
+      const first = mom ? pick(MOM) : pick(DAD);
+      m = {id: "А-" + (++mN), sur, first, pat: mom ? pick(PAT_M) : pick(PAT_D), cat: rnd() < .9 ? "Асоційований" : "Дійсний",
+           status: "Активний", phone: "+38067" + String(1000000 + Math.floor(rnd() * 8999999)), tg: rnd() < .52, benefit: 0, kids: [],
+           trusted: rnd() < .08 ? [{name: pick(MOM) + " (бабуся)", rights: "Перегляд"}] : [], email: rnd() < .5 ? "demo" + mN + "@example.com" : ""};
+      members.push(m);
+    }
+    const st = rnd() < .03 ? "Призупинений" : (rnd() < .025 ? "Припинений" : "Активний");
+    const k = {id: "В-" + (++kN), sur: m.sur, first: pick(BOY), g: G.g, status: st, member: m.id,
+               born: (y0 + (rnd() < .5 ? 0 : (G.g.includes("-") ? 1 : 0))) + "-" + String(1 + Math.floor(rnd() * 12)).padStart(2, "0") + "-" + String(1 + Math.floor(rnd() * 27)).padStart(2, "0"),
+               docs: rnd() < .62 ? "є" : (rnd() < .3 ? "паперова" : "немає"), att: Math.round(55 + rnd() * 45), debt: rnd() < .14 ? FEE * (1 + Math.floor(rnd() * 2)) : 0,
+               lastSeen: Math.floor(rnd() * 30), moves: []};
+    if (rnd() < .06) k.moves.push({date: "01.10.2026", from: pick(GROUPS).g, to: G.g});
+    kids.push(k); m.kids.push(k.id);
+  }
+});
+members.forEach(m => { const act = m.kids.map(id => kids.find(k => k.id === id)).filter(k => k.status !== "Припинений"); if (act.length >= 2) m.benefit = 10; });
+members[3].benefit = 50; members[3].benefitBy = "Почесний президент, 02.10.2026";
+members[11].benefit = 100; members[11].benefitBy = "Почесний президент, 15.09.2026";
+const kidById = id => kids.find(k => k.id === id);
+const memById = id => members.find(m => m.id === id);
+const kname = k => k.sur + " " + k.first;
+const mname = m => m.sur + " " + m.first + " " + m.pat;
+const feeOf = m => { const n = m.kids.map(kidById).filter(k => k.status === "Активний").length; return n * FEE * (1 - (m.benefit || 0) / 100); };
+
+/* документ (картинка-заглушка) */
+function docImg(title, sub) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='420' height='300'><rect width='420' height='300' fill='#fbfaf3'/><rect x='14' y='14' width='392' height='272' fill='none' stroke='#c9c19a' stroke-width='3'/><text x='210' y='70' font-family='Georgia' font-size='22' text-anchor='middle' fill='#333'>${title}</text><text x='210' y='104' font-family='Arial' font-size='14' text-anchor='middle' fill='#777'>${sub}</text>${[0,1,2,3,4,5].map(i => `<rect x='50' y='${140 + i * 22}' width='${200 + (i * 37) % 120}' height='8' fill='#d9d4bd'/>`).join("")}<text x='210' y='278' font-family='Arial' font-size='12' text-anchor='middle' fill='#b44'>ДЕМО — не справжній документ</text></svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+const K = i => kids[i], M = i => members[i];
+const ago = (d, t) => `${d} ${t}`;
+const inbox = [
+  {id:"З-0141", type:"join", icon:"📝", title:"Заява на вступ і на дитину", from:mname(M(40)), when:"12.11 07:20", due:"13.11", status:"new",
+   text:`Заява про вступ до ГО (асоційований член) і заява на дитину.\nДитина: ${kname(K(60))}, ${K(60).born.slice(0,4)} р. н.\nБажана група: ${K(60).g}\nКим доводиться: мати\nТелефон підтверджено Telegram.`,
+   files:[{n:"Свідоцтво — 1.jpg", src:docImg("Свідоцтво про народження","сторінка 1")}], hist:[["12.11 07:20","Надійшло"]]},
+  {id:"З-0140", type:"support", icon:"💬", title:"Підтримка: питання щодо внеску за листопад", from:mname(M(7)), when:"11.11 21:05", due:"12.11", status:"new",
+   text:"Добрий вечір! Ми оплатили внесок 3 листопада, а в кабінеті досі показує борг. Чи могли б перевірити?", files:[{n:"Квитанція.jpg", src:docImg("Квитанція","оплата 03.11")}], hist:[["11.11 21:05","Надійшло"]]},
+  {id:"З-0139", type:"booking", icon:"📌", title:"Інша бронь: Клас, 14.11 18:00–19:30", from:short(coach("T3").name)+" (тренер)", when:"11.11 16:40", due:"13.11 16:00", status:"new",
+   text:"Теоретичне заняття для групи 2016-2017 (розбір гри).\nПриміщення: Клас\nДата: 14.11.2026, 18:00–19:30", files:[], hist:[["11.11 16:40","Надійшло"]]},
+  {id:"З-0138", type:"absence", icon:"📅", title:"Перерахунок за відсутність: хвороба 12 днів", from:mname(M(22)), when:"11.11 12:10", due:"12.11", status:"work",
+   text:`Дитина: ${kname(K(25))} (${K(25).g})\nХвороба з 28.10 по 08.11 (12 днів), є довідка.\nРозрахунок: 2 500 грн × 12/30 = 1 000 грн до зменшення.`, files:[{n:"Довідка.jpg", src:docImg("Довідка","медична")}], hist:[["11.11 12:10","Надійшло"],["11.11 14:02","⏳ В роботі"]]},
+  {id:"З-0137", type:"doc", icon:"📎", title:"Документ вихованця ДОК-0019", from:mname(M(15)), when:"10.11 19:30", due:"11.11", status:"late",
+   text:`Дитина: ${kname(K(18))} (${K(18).g})\nФайлів: 2`, files:[{n:"ДОК-0019 — 1.jpg", src:docImg("Свідоцтво про народження","сторінка 1")},{n:"ДОК-0019 — 2.jpg", src:docImg("Свідоцтво про народження","сторінка 2")}], hist:[["10.11 19:30","Надійшло"],["11.11 10:00","👀 Переглянуто"]]},
+  {id:"З-0136", type:"request", icon:"📩", title:"Запит директору: виправити звіт 30.10", from:short(coach("T2").name)+" (тренер)", when:"10.11 18:15", due:"11.11", status:"late",
+   text:"Група 2019, тренування 30.10. Помилково відмітив Ткаченка Тимура відсутнім — він був. Прошу дозволити виправлення.", files:[], hist:[["10.11 18:15","Надійшло"]]},
+  {id:"З-0135", type:"transfer", icon:"🔄", title:"Переведення в групу без старшого тренера", from:short(coach("T4").name)+" (тренер)", when:"10.11 11:00", due:"11.11", status:"work",
+   text:`${kname(K(40))}: 2014-2015 → 2016-2017(2) з 01.12.2026.\nПричина: рівень підготовки.`, files:[], hist:[["10.11 11:00","Надійшло"],["10.11 15:20","⏳ В роботі"]]},
+  {id:"З-0134", type:"trial", icon:"🆕", title:"Ознайомче: тренер не відповів 24 год", from:"Сокіл Цифровий", when:"09.11 10:00", due:"10.11", status:"new",
+   text:"Заявка на ознайомче тренування, група 2018, 13.11 17:30.\nДитина: Литвин Марко, 2018 р. н.\nТренер ще не підтвердив.", files:[], hist:[["08.11 09:40","Заявка подана"],["09.11 10:00","Сигнал директору"]]},
+  {id:"З-0133", type:"mark", icon:"⚠️", title:"Неточність у відмітці (від батьків)", from:mname(M(30)), when:"08.11 20:12", due:"10.11", status:"answered",
+   text:"Мого сина відмітили відсутнім 06.11, але він був на тренуванні.", files:[], hist:[["08.11 20:12","Надійшло"],["09.11 10:05","✍️ Відповідь: перевірили з тренером, виправлено"],["09.11 10:05","✉️ Відповіли"]]},
+  {id:"З-0130", type:"support", icon:"💬", title:"Підтримка: довідка для школи", from:mname(M(51)), when:"05.11 09:00", due:"06.11", status:"closed",
+   text:"Потрібна довідка, що дитина займається в Академії.", files:[], hist:[["05.11 09:00","Надійшло"],["05.11 11:30","✍️ Відповідь: довідку підготуємо до п'ятниці"],["06.11 12:00","🏁 Закрито"]]},
+];
+const TYPES = {join:"Заява", support:"Підтримка", booking:"Бронь", absence:"Перерахунок", doc:"Документ", request:"Запит директору", transfer:"Переведення", trial:"Ознайомче", mark:"Неточність"};
+const STATUS = {new:["🆕 Нове","b-new"], seen:["👀 Переглянуто","b-mute"], work:["⏳ В роботі","b-wr"], late:["⌛ Минув строк","b-er"],
+                approved:["✅ Погоджено","b-ok"], rejected:["❌ Відхилено","b-er"], answered:["✉️ Відповіли","b-in"], closed:["🏁 Закрито","b-mute"], pres:["🤝 У президента","b-in"]};
+const appeals = [
+  {id:"ЗВР-0012", member:M(5).id, topic:"Фінансова підтримка", when:"11.11 18:40", status:"new",
+   thread:[{who:"m", t:"11.11 18:40", text:"Добрий день. Мій чоловік загинув на фронті у вересні. Дітей виховую сама. Чи можлива якась підтримка щодо внесків?"}],
+   files:[{n:"Довідка — 1.jpg", src:docImg("Довідка","підтвердний документ")}]},
+  {id:"ЗВР-0011", member:M(19).id, topic:"Фінансова підтримка", when:"07.11 10:15", status:"pres", proposal:"50%", dirComment:"Родина у складних обставинах, підтвердні документи надано. Пропоную 50%.",
+   thread:[{who:"m", t:"07.11 10:15", text:"Прошу розглянути можливість зменшення внеску: тимчасово втратила роботу."},
+           {who:"d", t:"07.11 12:00", text:"Дякуємо за звернення. Ми розглянемо його й повідомимо рішення."}],
+   files:[{n:"Документ.jpg", src:docImg("Довідка","центр зайнятості")}], sent:"08.11 09:30"},
+  {id:"ЗВР-0010", member:M(3).id, topic:"Фінансова підтримка", when:"28.09 14:00", status:"done", proposal:"50%", decision:"50%", dirComment:"Родина військовослужбовця.",
+   thread:[{who:"m", t:"28.09 14:00", text:"Чоловік служить у ЗСУ, прошу розглянути зменшення внеску."},
+           {who:"p", t:"02.10 11:20", text:"Погоджую 50%."},
+           {who:"d", t:"02.10 12:00", text:"За результатами розгляду вашого звернення Організація ухвалила рішення про часткове зменшення членського внеску. З жовтня ваш щомісячний внесок становитиме 1 250 грн."}],
+   files:[], archived:true},
+  {id:"ЗВР-0009", member:M(27).id, topic:"Інше", when:"25.10 16:30", status:"done",
+   thread:[{who:"m", t:"25.10 16:30", text:"Чи можна змінити групу на вечірню через навчання?"},{who:"d", t:"26.10 10:00", text:"Так, з листопада переведемо до групи 2014-2015(2)."}], files:[]},
+];
+const trials = [
+  {name:"Литвин Марко", y:2018, g:"2018", date:"13.11 17:30", st:"Очікує підтвердження", guardian:"Литвин Ольга"},
+  {name:"Захарченко Ілля", y:2016, g:"2016-2017", date:"12.11 18:00", st:"Підтверджено", guardian:"Захарченко Ірина"},
+  {name:"Остапчук Давид", y:2019, g:"2019", date:"10.11 17:00", st:"Прийшов", guardian:"Остапчук Віталій"},
+  {name:"Гуменюк Лев", y:2014, g:"2014-2015", date:"06.11 18:30", st:"Не прийшов", guardian:"Гуменюк Наталія"},
+  {name:"Сидоренко Тимофій", y:2020, g:"2020+", date:"05.11 16:00", st:"Прийшов → заява", guardian:"Сидоренко Анна"},
+];
+const singles = [{name:"Мороз Євген", g:"2012-2013", visits:3, last:"09.11"},{name:"Білик Остап", g:"2018", visits:1, last:"04.11"}];
+const ROOMS = ["Манеж","Поле","Роздягальня 1","Роздягальня 2","Клас","Хореографія","Кафе","Суддівська"];
+const KINDS = {tr:["⚽","Тренування","#FFEC02"], rent:["🤝","Оренда","#7CC4FF"], game:["🏟","Гра","#5BE49B"], other:["📌","Інше","#FFB04D"]};
+function dayEvents(d) {
+  seed = 100 + d; const out = [];
+  GROUPS.forEach(G => { if (rnd() < .55) { const h = 16 + Math.floor(rnd() * 4); out.push({t:`${h}:00–${h + 1}:30`, what:G.g, kind:"tr", room:rnd() < .6 ? "Манеж" : "Поле", who:short(coach(G.senior).name)}); } });
+  if (rnd() < .6) out.push({t:"10:00–13:00", what:"Оренда: Кудрівка", kind:"rent", room:"Манеж", who:"орендар"});
+  if (rnd() < .25) out.push({t:"12:00–14:00", what:"Гра: Перша команда — Тайгерс", kind:"game", room:"Поле", who:"Перша команда"});
+  if (rnd() < .3) out.push({t:"18:00–19:30", what:"Теорія 2016-2017", kind:"other", room:"Клас", who:short(coach("T3").name)});
+  return out.sort((a, b) => a.t.localeCompare(b.t));
+}
+
+/* ═══════════════════════════ ШАР ДАНИХ (API) ═══════════════════════════
+   DEMO: дані з пам'яті, дії — лише на цій сторінці. Етап 2: fetch(`${API_BASE}/…`) з initData у заголовку. */
+const DEMO = true;
+const api = {
+  async inbox() { return inbox; },
+  async appeals() { return appeals; },
+  async act(kind, payload) {
+    // Етап 3: POST /api/act {kind, payload} → ті самі функції, що й кнопки в чаті.
+    return {ok: true, demo: DEMO};
+  },
+};
+
+/* ═══════════════════════════ ДОПОМІЖНЕ ═══════════════════════════ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const st = {sec: "home", tab: {}, sel: {}, filter: {}, month: NOW_MONTH, occ: {mode:"day", d:0, room:""}, q:""};
+function toast(t) { const el = document.createElement("div"); el.className = "toast"; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+function demoDone(t) { toast((DEMO ? "Демо: " : "") + t); }
+function badge(s) { const v = STATUS[s] || [s, "b-mute"]; return `<span class="badge ${v[1]}">${v[0]}</span>`; }
+function modal(html, onMount) {
+  const bg = document.createElement("div"); bg.className = "modal-bg";
+  bg.innerHTML = `<div class="modal">${html}</div>`;
+  bg.addEventListener("click", e => { if (e.target === bg) bg.remove(); });
+  document.body.appendChild(bg); onMount && onMount(bg.querySelector(".modal"), () => bg.remove()); return bg;
+}
+function viewImg(src) { const v = document.createElement("div"); v.className = "viewer"; v.innerHTML = `<img src="${src}" alt="">`; v.onclick = () => v.remove(); document.body.appendChild(v); }
+function files(list) {
+  if (!list || !list.length) return "";
+  return `<div class="files">${list.map((f, i) => `<div class="file" data-img="${i}"><img src="${f.src}" alt=""><div>📎 ${esc(f.n)}</div></div>`).join("")}</div>`;
+}
+function bindFiles(root, list) { root.querySelectorAll("[data-img]").forEach(el => el.onclick = () => viewImg(list[+el.dataset.img].src)); }
+function setHash() { const s = st.sel[st.sec]; try { history.replaceState(null, "", "#" + st.sec + (s ? "/" + encodeURIComponent(s) : "")); } catch (e) {} }
+
+/* ═══════════════════════════ МЕНЮ ═══════════════════════════ */
+const SECTIONS = [
+  ["home","🏠","Головна"], ["inbox","📥","Скринька"], ["appeals","📨","Звернення"], ["members","📋","Склад ГО"],
+  ["groups","👥","Групи й тренери"], ["finance","💰","Фінанси"], ["occupancy","🏟","Зайнятість"], ["newcomers","🆕","Новенькі"],
+  ["reports","📊","Звіти"], ["views","👁","Кабінети й демо"], ["tech","🛠","Технічне"], ["settings","🔔","Налаштування"],
+];
+function counts() {
+  const open = inbox.filter(c => ["new","seen","work","late"].includes(c.status));
+  return {inbox: open.length, late: inbox.filter(c => c.status === "late").length, appeals: appeals.filter(a => a.status === "new").length,
+          newcomers: trials.filter(t => t.st === "Очікує підтвердження").length};
+}
+function renderNav() {
+  const c = counts();
+  $("#nav").innerHTML = SECTIONS.map(([id, ic, t]) => {
+    let n = ""; if (id === "inbox" && c.inbox) n = `<span class="cnt ${c.late ? "hot" : ""}">${c.inbox}</span>`;
+    if (id === "appeals" && c.appeals) n = `<span class="cnt">${c.appeals}</span>`;
+    if (id === "newcomers" && c.newcomers) n = `<span class="cnt">${c.newcomers}</span>`;
+    return `<button data-sec="${id}" class="${st.sec === id ? "on" : ""}"><span class="ic">${ic}</span>${t}${n}</button>`;
+  }).join("");
+  $("#nav").querySelectorAll("button").forEach(b => b.onclick = () => go(b.dataset.sec));
+}
+function go(sec, sel) { st.sec = sec; if (sel !== undefined) st.sel[sec] = sel; render(); }
+function render() {
+  renderNav();
+  const s = SECTIONS.find(x => x[0] === st.sec); $("#title").textContent = s[2];
+  const c = $("#content"); c.className = "content"; c.scrollTop = 0;
+  (VIEWS[st.sec] || (() => c.innerHTML = ""))(c);
+  setHash();
+}
+function split(c, listHtml, detailHtml, hasSel) {
+  c.className = "content split" + (hasSel ? " has-sel" : "");
+  c.innerHTML = `<div class="pane list">${listHtml}</div><div class="pane detail">${hasSel ? `<button class="btn sm mback" id="mback">← До списку</button>` : ""}${detailHtml}</div>`;
+  const mb = c.querySelector("#mback"); if (mb) mb.onclick = () => { st.sel[st.sec] = null; render(); };
+}
+
+/* ═══════════════════════════ РОЗДІЛИ ═══════════════════════════ */
+const VIEWS = {};
+
+/* 🏠 Головна */
+VIEWS.home = c => {
+  const k = counts(), today = dayEvents(0);
+  const act = kids.filter(x => x.status === "Активний").length;
+  c.innerHTML = `
+  <div class="grid g4">
+    <div class="card kpi y click" data-go="inbox"><div class="l">Скринька — відкриті</div><div class="v">${k.inbox}</div><div class="d">з них прострочено: ${k.late}</div></div>
+    <div class="card kpi click" data-go="appeals"><div class="l">Нові звернення</div><div class="v">${k.appeals}</div><div class="d">у президента: ${appeals.filter(a => a.status === "pres").length}</div></div>
+    <div class="card kpi click" data-go="members"><div class="l">Вихованців активних</div><div class="v">${act}</div><div class="d">родин: ${members.length}</div></div>
+    <div class="card kpi click" data-go="finance"><div class="l">Борг на сьогодні</div><div class="v">${fmt(kids.reduce((s, x) => s + x.debt, 0))}</div><div class="d">дітей з боргом: ${kids.filter(x => x.debt).length}</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h2>Потребує рішення</h2>
+      ${inbox.filter(x => ["new","late","work"].includes(x.status)).slice(0, 6).map(x => `<button class="row" data-card="${x.id}"><div class="t"><b>${x.icon} ${esc(x.title)}</b><span class="r">${badge(x.status)}</span></div><div class="s">${esc(x.from)} · ${x.when} · строк ${x.due}</div></button>`).join("")}
+    </div>
+    <div class="card"><h2>Сьогодні на базі</h2>
+      ${today.map(e => `<div class="ev"><span class="tm">${e.t}</span><span><span class="dot" style="background:${KINDS[e.kind][2]}"></span>${esc(e.what)}</span><span class="muted">${e.room}</span></div>`).join("") || `<div class="muted">Подій немає</div>`}
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h2>🗂 Зведення о 10:00</h2>
+      <div class="small">📅 Відсутності за добу: 3 · 🚪 Відрахування: 0 · 🤝 Довірені особи: +1<br>👥 Переведення старшими тренерами: 1 · 🆕 Ознайомчі: 2 нові заявки<br>💬 Без відповіді понад 3 дні: 0</div>
+    </div>
+    <div class="card"><h2>🛠 Технічний стан</h2>
+      <div class="small">✅ Сокіл Цифровий працює · Google — доступний · черга записів: 0<br>💾 Копія 03:12 — перевірено, на дисках 2 з 2 · помилок за добу: 0</div>
+      <div style="margin-top:8px"><button class="btn sm" data-go="tech">Деталі</button></div>
+    </div>
+  </div>`;
+  c.querySelectorAll("[data-go]").forEach(el => el.onclick = () => go(el.dataset.go));
+  c.querySelectorAll("[data-card]").forEach(el => el.onclick = () => go("inbox", el.dataset.card));
+};
+
+/* 📥 Скринька */
+const INBOX_TABS = [["new","🆕 Нові",x => ["new","seen"].includes(x.status)],["work","⏳ В роботі",x => x.status === "work" || x.status === "pres"],
+                    ["late","⌛ Прострочені",x => x.status === "late"],["closed","🏁 Закриті",x => ["approved","rejected","answered","closed"].includes(x.status)]];
+VIEWS.inbox = c => {
+  const tab = st.tab.inbox || "new", flt = st.filter.inbox || "";
+  const sel = st.sel.inbox ? inbox.find(x => x.id === st.sel.inbox) : null;
+  const fn = INBOX_TABS.find(t => t[0] === tab)[2];
+  const list = inbox.filter(fn).filter(x => !flt || x.type === flt);
+  const types = [...new Set(inbox.filter(fn).map(x => x.type))];
+  const listHtml = `<div class="tabs">${INBOX_TABS.map(t => `<button class="tab ${tab === t[0] ? "on" : ""}" data-tab="${t[0]}">${t[1]}<span class="n">${inbox.filter(t[2]).length}</span></button>`).join("")}</div>
+    <div class="chips">${types.map(t => `<button class="chip ${flt === t ? "on" : ""}" data-f="${t}">${TYPES[t]}</button>`).join("")}</div>
+    ${list.map(x => `<button class="row ${sel && sel.id === x.id ? "sel" : ""}" data-id="${x.id}"><div class="t"><b>${x.icon} ${esc(x.title)}</b><span class="r">${x.when}</span></div><div class="s">${x.id} · ${esc(x.from)}</div><div style="margin-top:4px">${badge(x.status)} <span class="muted small">строк ${x.due}</span></div></button>`).join("") || `<div class="empty"><b>✨</b>Тут порожньо</div>`}`;
+  let det = `<div class="empty"><b>📥</b>Оберіть картку зліва</div>`;
+  if (sel) {
+    if (sel.status === "new") { sel.status = "seen"; sel.hist.push([nowStr(), "👀 Переглянуто"]); }
+    det = `<div class="dhead"><div style="font-size:30px">${sel.icon}</div><div><div class="ttl">${esc(sel.title)}</div><div class="yline"></div></div></div>
+      <dl class="meta"><dt>Картка</dt><dd>${sel.id} · ${TYPES[sel.type]}</dd><dt>Від кого</dt><dd>${esc(sel.from)}</dd><dt>Надійшло</dt><dd>${sel.when}</dd><dt>Строк</dt><dd>${sel.due}</dd><dt>Статус</dt><dd>${badge(sel.status)}</dd></dl>
+      <div class="body">${esc(sel.text)}</div>${files(sel.files)}
+      <div class="actions">${cardActions(sel)}</div>
+      <h3>Історія</h3><div class="hist">${sel.hist.map(h => `<div><i>${h[0]}</i>${esc(h[1])}</div>`).join("")}</div>`;
+  }
+  split(c, listHtml, det, !!sel);
+  c.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { st.tab.inbox = b.dataset.tab; st.filter.inbox = ""; st.sel.inbox = null; render(); });
+  c.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { st.filter.inbox = st.filter.inbox === b.dataset.f ? "" : b.dataset.f; render(); });
+  c.querySelectorAll("[data-id]").forEach(b => b.onclick = () => go("inbox", b.dataset.id));
+  if (sel) { bindFiles(c, sel.files); c.querySelectorAll("[data-act]").forEach(b => b.onclick = () => cardAct(sel, b.dataset.act)); }
+};
+function nowStr() { const d = new Date(); return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + " " + d.toTimeString().slice(0, 5); }
+function cardActions(x) {
+  const closed = ["approved","rejected","answered","closed"].includes(x.status);
+  if (closed) return `<span class="muted small">Картку закрито. Відповідь і рішення — в історії.</span>`;
+  const dec = {
+    join:`<button class="btn ok" data-act="approve">✅ Прийняти</button><button class="btn er" data-act="reject">❌ Відхилити</button>`,
+    booking:`<button class="btn ok" data-act="approve">✅ Погодити</button><button class="btn er" data-act="reject">❌ Відхилити</button>`,
+    absence:`<button class="btn p" data-act="approve">📋 Погодити перерахунок</button><button class="btn er" data-act="reject">❌ Відхилити</button>`,
+    doc:`<button class="btn ok" data-act="approve">✅ Прийняти документ</button><button class="btn er" data-act="reject">❌ Не той документ</button>`,
+    request:`<button class="btn ok" data-act="approve">✅ Дозволити</button><button class="btn er" data-act="reject">❌ Ні</button>`,
+    transfer:`<button class="btn ok" data-act="approve">✅ Погодити</button><button class="btn er" data-act="reject">❌ Відхилити</button>`,
+    trial:`<button class="btn" data-act="remind">🔔 Нагадати тренеру</button>`,
+  }[x.type] || "";
+  return dec + `<button class="btn" data-act="reply">✍️ Відповісти</button>`
+    + (x.type === "support" ? `<button class="btn" data-act="pres">🤝 На розгляд президенту</button>` : "")
+    + `<button class="btn" data-act="work">⏳ В роботі</button><button class="btn" data-act="extend">⏩ Продовжити</button>`
+    + (x.type !== "booking" ? `<button class="btn" data-act="close">🏁 Закрити</button>` : "");
+}
+function cardAct(x, a) {
+  const done = (status, h, msg) => { if (status) x.status = status; x.hist.push([nowStr(), h]); api.act(a, {id: x.id}); demoDone(msg); render(); };
+  if (a === "approve") return done("approved", "✅ Погоджено директором", "погоджено, автор отримає повідомлення");
+  if (a === "reject") return askText("Причина відмови", "Автор побачить цей текст", t => done("rejected", "❌ Відхилено" + (t ? ": " + t : ""), "відхилено"));
+  if (a === "work") return done("work", "⏳ В роботі", "статус «В роботі»");
+  if (a === "extend") { x.due = "+1 роб. день"; return done(null, "⏩ Продовжено розгляд на 1 робочий день", "строк продовжено"); }
+  if (a === "close") return done("closed", "🏁 Закрито", "картку закрито");
+  if (a === "remind") return done(null, "🔔 Нагадування тренеру", "тренеру надіслано нагадування");
+  if (a === "reply") return askText("Відповідь автору", "Текст піде автору тут, у Сокіл Цифровий, і запишеться в картку", t => t && done(x.type === "support" ? "answered" : null, "✍️ Відповідь: " + t, "відповідь надіслано"));
+  if (a === "pres") { const ap = {id:"ЗВР-00" + (13 + appeals.length), member:M(7).id, topic:"Фінансова підтримка", when:x.when, status:"new", thread:[{who:"m", t:x.when, text:x.text}], files:x.files}; appeals.unshift(ap); x.status = "work"; x.hist.push([nowStr(), "📨 Перенесено у «Звернення» → " + ap.id]); presModal(ap); }
+}
+function askText(title, hint, cb) {
+  modal(`<h3>${esc(title)}</h3><div class="muted small">${esc(hint)}</div><textarea id="mt"></textarea><div class="actions"><button class="btn p" id="ok">Надіслати</button><button class="btn" id="no">Скасувати</button></div>`,
+    (m, close) => { m.querySelector("#mt").focus(); m.querySelector("#ok").onclick = () => { const t = m.querySelector("#mt").value.trim(); close(); cb(t); }; m.querySelector("#no").onclick = close; });
+}
+
+/* 📨 Звернення й документообіг */
+const AP_ST = {new:["🆕 Нове","b-new"], pres:["🤝 У президента","b-in"], decided:["✅ Рішення є","b-ok"], done:["🏁 Завершено","b-mute"]};
+VIEWS.appeals = c => {
+  const tab = st.tab.appeals || "open";
+  const sel = st.sel.appeals ? appeals.find(a => a.id === st.sel.appeals) : null;
+  const list = appeals.filter(a => tab === "open" ? a.status !== "done" : a.status === "done");
+  const listHtml = `<div class="tabs"><button class="tab ${tab === "open" ? "on" : ""}" data-tab="open">Відкриті<span class="n">${appeals.filter(a => a.status !== "done").length}</span></button><button class="tab ${tab === "done" ? "on" : ""}" data-tab="done">Архів<span class="n">${appeals.filter(a => a.status === "done").length}</span></button></div>
+    ${list.map(a => { const m = memById(a.member); return `<button class="row ${sel && sel.id === a.id ? "sel" : ""}" data-id="${a.id}"><div class="t"><b>${esc(m.sur + " " + m.first)}</b><span class="r">${a.when}</span></div><div class="s">${a.id} · ${esc(a.topic)}</div><div style="margin-top:4px"><span class="badge ${AP_ST[a.status][1]}">${AP_ST[a.status][0]}</span></div></button>`; }).join("") || `<div class="empty"><b>✨</b>Порожньо</div>`}`;
+  let det = `<div class="empty"><b>📨</b>Оберіть звернення</div>`;
+  if (sel) {
+    const m = memById(sel.member), ks = m.kids.map(kidById);
+    det = `<div class="dhead"><div style="font-size:30px">📨</div><div><div class="ttl">${sel.id} · ${esc(sel.topic)}</div><div class="yline"></div></div></div>
+      <dl class="meta"><dt>Заявник</dt><dd><a href="#" data-mem="${m.id}">${esc(mname(m))}</a> · ${m.id} · ${m.cat}</dd><dt>Діти</dt><dd>${ks.map(k => `${esc(kname(k))} (${k.g}, ${k.status.toLowerCase()})`).join("; ")}</dd>
+      <dt>Внесок зараз</dt><dd>${fmt(feeOf(m))} / міс${m.benefit ? ` · пільга ${m.benefit}%` : ""}</dd><dt>Статус</dt><dd><span class="badge ${AP_ST[sel.status][1]}">${AP_ST[sel.status][0]}</span></dd></dl>
+      <h3>Листування</h3>
+      ${sel.thread.map(t => `<div class="msg ${t.who === "d" ? "me" : t.who === "p" ? "pres" : ""}"><small>${t.who === "d" ? "Ви (директор)" : t.who === "p" ? "Почесний президент" : esc(m.first)} · ${t.t}</small>${esc(t.text)}</div>`).join("")}
+      ${files(sel.files)}
+      ${sel.dirComment ? `<div class="card" style="margin-top:12px"><b>Ваш коментар президенту:</b> ${esc(sel.dirComment)}<br><b>Проєкт рішення:</b> ${esc(sel.proposal || "без проєкту")}${sel.sent ? `<br><span class="muted small">Надіслано ${sel.sent}</span>` : ""}</div>` : ""}
+      <div class="actions">
+        <button class="btn p" data-act="reply">✍️ Відповісти заявнику</button>
+        ${sel.status === "new" ? `<button class="btn" data-act="pres">🤝 На розгляд президенту</button>` : ""}
+        ${sel.status === "pres" ? `<button class="btn" data-act="presview">👁 Як бачить президент</button><button class="btn" data-act="presok">▶️ Демо: президент погодив</button>` : ""}
+        <button class="btn" data-act="benefit">🎟 Пільга вручну</button>
+        <button class="btn" data-act="archive">🗄 В архів на Диску</button>
+      </div>
+      ${sel.archived ? `<div class="muted small">🗄 Листування збережено в архів: «Сокіл · Пільги / ${m.id} ${esc(m.sur)}».</div>` : ""}`;
+  }
+  split(c, listHtml, det, !!sel);
+  c.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { st.tab.appeals = b.dataset.tab; st.sel.appeals = null; render(); });
+  c.querySelectorAll("[data-id]").forEach(b => b.onclick = () => go("appeals", b.dataset.id));
+  c.querySelectorAll("[data-mem]").forEach(a => a.onclick = e => { e.preventDefault(); go("members", a.dataset.mem); });
+  if (sel) {
+    bindFiles(c, sel.files);
+    c.querySelectorAll("[data-act]").forEach(b => b.onclick = () => {
+      const a = b.dataset.act, m = memById(sel.member);
+      if (a === "reply") askText("Відповідь заявнику", "Піде людині тут, у Сокіл Цифровий; копія — в архів звернення", t => { if (t) { sel.thread.push({who:"d", t:nowStr(), text:t}); demoDone("відповідь надіслано"); render(); } });
+      if (a === "pres") presModal(sel);
+      if (a === "presview") presPreview(sel);
+      if (a === "presok") { const p = sel.proposal && sel.proposal.endsWith("%") ? parseInt(sel.proposal) : 50; sel.thread.push({who:"p", t:nowStr(), text:"Погоджую " + p + "%."}); sel.status = "decided"; sel.decision = p + "%"; m.benefit = Math.max(m.benefit, p); m.benefitBy = "Почесний президент, " + nowStr();
+        demoDone(`пільга ${p}% → скрипт реєстру внесе в «Пільги щодо внесків»; вам — інформація, заявнику відповідаєте ви`); render(); }
+      if (a === "benefit") benefitModal(m);
+      if (a === "archive") { sel.archived = true; if (sel.status === "decided") sel.status = "done"; demoDone("листування й файли збережено на Диску"); render(); }
+    });
+  }
+};
+function presModal(ap) {
+  let prop = "50%";
+  modal(`<h3>🤝 На розгляд президенту</h3><div class="muted small">${ap.id} · Почесний президент отримає звернення, файли, ваш коментар і проєкт рішення</div>
+    <label>Ваш коментар (необов'язково)</label><textarea id="cm" placeholder="Напр.: родина у складних обставинах, документи надано"></textarea>
+    <label>Проєкт рішення</label><div class="opts" id="pr">${["25%","50%","75%","100% (звільнення)","інший %","сума, грн/міс","без проєкту"].map(o => `<button class="opt ${o === prop ? "on" : ""}">${o}</button>`).join("")}</div>
+    <input id="pv" placeholder="Значення" style="display:none;margin-top:8px">
+    <div class="actions"><button class="btn p" id="ok">Надіслати президенту</button><button class="btn" id="no">Скасувати</button></div>`, (m, close) => {
+    m.querySelectorAll("#pr .opt").forEach(b => b.onclick = () => { m.querySelectorAll("#pr .opt").forEach(x => x.classList.remove("on")); b.classList.add("on"); prop = b.textContent; m.querySelector("#pv").style.display = /інший|сума/.test(prop) ? "block" : "none"; });
+    m.querySelector("#no").onclick = close;
+    m.querySelector("#ok").onclick = () => { const v = m.querySelector("#pv").value.trim(); ap.proposal = /інший/.test(prop) ? v + "%" : /сума/.test(prop) ? v + " грн/міс" : prop.replace(" (звільнення)", "");
+      ap.dirComment = m.querySelector("#cm").value.trim() || "—"; ap.status = "pres"; ap.sent = nowStr(); close(); api.act("to_president", {id: ap.id}); demoDone("звернення надіслано президенту"); go("appeals", ap.id); };
+  });
+}
+function presPreview(ap) {
+  const m = memById(ap.member);
+  modal(`<h3>👁 Як бачить президент</h3><div class="muted small">Повідомлення в Telegram Почесному президенту (у робочий час)</div>
+    <div class="pres-preview"><div class="tg">🤝 <b>Звернення ${ap.id} на розгляд</b><br>${esc(mname(m))} · ${m.kids.length} дит. · внесок ${fmt(feeOf(m))}/міс<br><br>«${esc(ap.thread[0].text.slice(0, 160))}…»<br><br><b>Коментар директора:</b> ${esc(ap.dirComment)}<br><b>Проєкт рішення:</b> ${esc(ap.proposal)}
+      <div class="kb"><span>✅ Погоджую</span><span>✏️ Інший розмір</span><span>💬 Відповісти</span><span>❌ Не погоджую</span><span style="grid-column:1/3">📎 Документи (${ap.files.length})</span></div></div></div>
+    <div class="actions"><button class="btn" id="no">Закрити</button></div>`, (mm, close) => mm.querySelector("#no").onclick = close);
+}
+function benefitModal(m) {
+  let v = String(m.benefit || 0);
+  modal(`<h3>🎟 Пільга — ${esc(m.sur + " " + m.first)}</h3><div class="muted small">Зараз: ${m.benefit || 0}%${m.benefitBy ? " (" + esc(m.benefitBy) + ")" : ""}. Іде в аркуш «Пільги_рішення» → скрипт реєстру. 10% і пільга не сумуються — береться більша.</div>
+    <label>Розмір</label><div class="opts" id="pr">${["0","10","25","50","75","100"].map(o => `<button class="opt ${o === v ? "on" : ""}">${o}%</button>`).join("")}</div>
+    <label>Або сума, грн на місяць</label><input id="sum" placeholder="напр. 1500">
+    <div class="actions"><button class="btn p" id="ok">Застосувати</button><button class="btn er" id="cancel">Скасувати пільгу</button><button class="btn" id="no">Закрити</button></div>`, (mm, close) => {
+    mm.querySelectorAll("#pr .opt").forEach(b => b.onclick = () => { mm.querySelectorAll("#pr .opt").forEach(x => x.classList.remove("on")); b.classList.add("on"); v = parseInt(b.textContent); });
+    mm.querySelector("#no").onclick = close;
+    mm.querySelector("#cancel").onclick = () => { m.benefit = m.kids.length >= 2 ? 10 : 0; m.benefitBy = ""; close(); demoDone("пільгу скасовано (рядок «Скасовано»)"); render(); };
+    mm.querySelector("#ok").onclick = () => { const s = parseInt(mm.querySelector("#sum").value); if (s > 0) v = Math.round((1 - s / FEE) * 100); m.benefit = +v; m.benefitBy = "директор, " + nowStr(); close(); demoDone(`пільга ${v}% → скрипт реєстру`); render(); };
+  });
+}
+
+/* 📋 Склад ГО */
+VIEWS.members = c => {
+  const tab = st.tab.members || "members", q = st.q.toLowerCase();
+  const selId = st.sel.members;
+  const selM = selId && selId.startsWith("А-") ? memById(selId) : null, selK = selId && selId.startsWith("В-") ? kidById(selId) : null;
+  let listHtml = `<div class="tabs">${[["members","Члени ГО"],["kids","Вихованці"],["left","🗄 Вибулі"]].map(t => `<button class="tab ${tab === t[0] ? "on" : ""}" data-tab="${t[0]}">${t[1]}</button>`).join("")}</div>`;
+  if (tab === "members") {
+    const l = members.filter(m => !q || mname(m).toLowerCase().includes(q) || m.id.toLowerCase().includes(q) || m.phone.includes(q));
+    listHtml += l.map(m => `<button class="row ${selM && selM.id === m.id ? "sel" : ""}" data-id="${m.id}"><div class="t"><b>${esc(m.sur + " " + m.first)}</b><span class="r">${m.id}</span></div><div class="s">${m.kids.length} дит. · ${m.cat}${m.benefit ? ` · 🎟 ${m.benefit}%` : ""}${m.tg ? " · 📱" : ""}</div></button>`).join("");
+  } else {
+    const l = kids.filter(k => (tab === "left" ? k.status === "Припинений" : k.status !== "Припинений") && (!q || kname(k).toLowerCase().includes(q) || k.id.toLowerCase().includes(q)));
+    listHtml += l.map(k => `<button class="row ${selK && selK.id === k.id ? "sel" : ""}" data-id="${k.id}"><div class="t"><b>${esc(kname(k))}</b><span class="r">${k.id}</span></div><div class="s">${k.g} · ${k.status}${k.debt ? " · борг " + fmt(k.debt) : ""}</div></button>`).join("");
+  }
+  let det;
+  if (selM) det = memberCard(selM);
+  else if (selK) det = kidCard(selK);
+  else {
+    const act = kids.filter(k => k.status === "Активний").length, sus = kids.filter(k => k.status === "Призупинений").length, left = kids.filter(k => k.status === "Припинений").length;
+    const ben = {}; members.forEach(m => { if (m.benefit) { const n = m.kids.map(kidById).filter(k => k.status === "Активний").length; ben[m.benefit] = (ben[m.benefit] || 0) + n; } });
+    det = `<div class="grid g3"><div class="card kpi"><div class="l">Членів ГО</div><div class="v">${members.length}</div><div class="d">асоційованих ${members.filter(m => m.cat === "Асоційований").length} · дійсних ${members.filter(m => m.cat === "Дійсний").length}</div></div>
+      <div class="card kpi"><div class="l">Вихованці</div><div class="v">${act}</div><div class="d">призупинених ${sus} · вибулих ${left}</div></div>
+      <div class="card kpi"><div class="l">З пільгою (активні діти)</div><div class="v">${Object.values(ben).reduce((a, b) => a + b, 0)}</div><div class="d">${Object.entries(ben).map(([p, n]) => p + "% — " + n).join(" · ")}</div></div></div>
+      <h2>Групи</h2><table><tr><th>Група</th><th>Старший тренер</th><th class="num">Активні</th><th class="num">Призуп.</th><th class="num">З пільгою</th></tr>
+      ${GROUPS.map(G => { const ks = kids.filter(k => k.g === G.g); return `<tr class="click" data-grp="${G.g}"><td><b>${G.g}</b></td><td>${short(coach(G.senior).name)}</td><td class="num">${ks.filter(k => k.status === "Активний").length}</td><td class="num">${ks.filter(k => k.status === "Призупинений").length}</td><td class="num">${ks.filter(k => k.status === "Активний" && memById(k.member).benefit).length}</td></tr>`; }).join("")}</table>
+      <p class="muted small">Оберіть людину зліва або скористайтесь пошуком угорі.</p>`;
+  }
+  split(c, listHtml, det, !!(selM || selK));
+  c.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { st.tab.members = b.dataset.tab; st.sel.members = null; render(); });
+  c.querySelectorAll("[data-id]").forEach(b => b.onclick = () => go("members", b.dataset.id));
+  c.querySelectorAll("[data-kid]").forEach(b => b.onclick = () => go("members", b.dataset.kid));
+  c.querySelectorAll("[data-grp]").forEach(b => b.onclick = () => go("groups", b.dataset.grp));
+  c.querySelectorAll("[data-ap]").forEach(b => b.onclick = () => go("appeals", b.dataset.ap));
+  const bb = c.querySelector("[data-act=benefit]"); if (bb) bb.onclick = () => benefitModal(selM);
+  const vb = c.querySelector("[data-act=view]"); if (vb) vb.onclick = () => demoDone("кабінет члена ГО відкриється в чаті в режимі перегляду");
+  c.querySelectorAll("[data-act=moveKid]").forEach(b => b.onclick = () => moveModal(selK));
+  const dk = c.querySelector("[data-act=doc]"); if (dk) dk.onclick = () => viewImg(docImg("Свідоцтво про народження", kname(selK)));
+};
+function memberCard(m) {
+  const ks = m.kids.map(kidById), aps = appeals.filter(a => a.member === m.id);
+  return `<div class="dhead"><div style="font-size:30px">👤</div><div><div class="ttl">${esc(mname(m))}</div><div class="yline"></div></div></div>
+    <dl class="meta"><dt>ID</dt><dd>${m.id} · ${m.cat} · ${m.status}</dd><dt>Телефон</dt><dd>${m.phone}</dd>${m.email ? `<dt>E-mail</dt><dd>${m.email}</dd>` : ""}
+    <dt>Сокіл Цифровий</dt><dd>${m.tg ? "📱 підключено" : "<span class='muted'>не підключено</span>"}</dd>
+    <dt>Внесок</dt><dd><b>${fmt(feeOf(m))}</b> / міс${m.benefit ? ` · 🎟 пільга ${m.benefit}%${m.benefitBy ? " — " + esc(m.benefitBy) : " (2+ дітей, автоматично)"}` : ""}</dd>
+    <dt>Борг</dt><dd>${fmt(ks.reduce((s, k) => s + k.debt, 0))}</dd></dl>
+    <div class="actions"><button class="btn" data-act="benefit">🎟 Пільга</button><button class="btn" data-act="view">👁 Кабінет так, як бачить він</button></div>
+    <h3>Діти</h3><table><tr><th>Дитина</th><th>Група</th><th>Статус</th><th>Документ</th><th class="num">Борг</th></tr>
+    ${ks.map(k => `<tr class="click" data-kid="${k.id}"><td><b>${esc(kname(k))}</b> <span class="muted">${k.id}</span></td><td>${k.g}</td><td>${k.status}</td><td>${docBadge(k)}</td><td class="num">${k.debt ? fmt(k.debt) : "—"}</td></tr>`).join("")}</table>
+    ${m.trusted.length ? `<h3>Довірені особи</h3>${m.trusted.map(t => `<div>🤝 ${esc(t.name)} · ${t.rights}</div>`).join("")}` : ""}
+    <h3>Звернення</h3>${aps.length ? aps.map(a => `<div><a href="#" data-ap="${a.id}" onclick="return false">${a.id}</a> · ${esc(a.topic)} · ${a.when}</div>`).join("") : `<div class="muted">Немає</div>`}`;
+}
+function docBadge(k) { return k.docs === "є" ? `<span class="badge b-ok">є</span>` : k.docs === "паперова" ? `<span class="badge b-in">паперова</span>` : `<span class="badge b-er">немає</span>`; }
+function kidCard(k) {
+  const m = memById(k.member); seed = parseInt(k.id.slice(2));
+  const fin = MONTHS.slice(0, NOW_MONTH + 1).map((mo, i) => { const due = FEE * (1 - (m.benefit || 0) / 100); const paid = i === NOW_MONTH && k.debt ? 0 : due; return [mo, due, paid]; });
+  return `<div class="dhead"><div style="font-size:30px">⚽</div><div><div class="ttl">${esc(kname(k))}</div><div class="yline"></div></div></div>
+    <dl class="meta"><dt>ID</dt><dd>${k.id}</dd><dt>Група</dt><dd><a href="#" data-grp="${k.g}" onclick="return false">${k.g}</a> · ${k.status}</dd><dt>Народження</dt><dd>${k.born.split("-").reverse().join(".")}</dd>
+    <dt>Член ГО</dt><dd><a href="#" data-id="${m.id}" onclick="return false">${esc(mname(m))}</a> · ${m.phone}</dd><dt>Документ</dt><dd>${docBadge(k)} ${k.docs === "є" ? `<button class="btn sm" data-act="doc">📎 Переглянути</button>` : ""}</dd>
+    <dt>Відвідуваність</dt><dd>${k.att}% за сезон · востаннє ${k.lastSeen ? k.lastSeen + " дн. тому" : "сьогодні"}</dd></dl>
+    <div class="actions"><button class="btn" data-act="moveKid">🔄 Перевести</button><button class="btn" data-act="moveKid">➕ Додаткова група</button></div>
+    <h3>Фінанси сезону</h3><table><tr><th>Місяць</th><th class="num">Нараховано</th><th class="num">Сплачено</th></tr>${fin.map(f => `<tr><td>${f[0]}</td><td class="num">${fmt(f[1])}</td><td class="num">${f[2] < f[1] ? `<span style="color:var(--er)">${fmt(f[2])}</span>` : fmt(f[2])}</td></tr>`).join("")}</table>
+    <h3>Рух між групами</h3>${k.moves.length ? k.moves.map(x => `<div>${x.date}: ${x.from} → ${x.to}</div>`).join("") : `<div class="muted">Без переведень</div>`}`;
+}
+function moveModal(k) {
+  let g = "", when = "з 1-го наступного місяця";
+  modal(`<h3>🔄 Перевести — ${esc(kname(k))}</h3><div class="muted small">Зараз: ${k.g}. Батьки й старші тренери обох груп отримають повідомлення; реєстр оновить скрипт.</div>
+    <label>Нова група</label><div class="opts" id="gg">${GROUPS.filter(G => G.g !== k.g).map(G => `<button class="opt">${G.g}</button>`).join("")}</div>
+    <label>З якої дати</label><div class="opts" id="ww">${["з сьогодні","з 1-го цього місяця","з 1-го наступного місяця"].map(o => `<button class="opt ${o === when ? "on" : ""}">${o}</button>`).join("")}</div>
+    <div class="actions"><button class="btn p" id="ok">Перевести</button><button class="btn" id="no">Скасувати</button></div>`, (m, close) => {
+    const one = (sel, cb) => m.querySelectorAll(sel + " .opt").forEach(b => b.onclick = () => { m.querySelectorAll(sel + " .opt").forEach(x => x.classList.remove("on")); b.classList.add("on"); cb(b.textContent); });
+    one("#gg", v => g = v); one("#ww", v => when = v); m.querySelector("#no").onclick = close;
+    m.querySelector("#ok").onclick = () => { if (!g) return toast("Оберіть групу"); k.moves.push({date: when, from: k.g, to: g}); k.g = g; close(); demoDone(`переведено в ${g} (${when})`); render(); };
+  });
+}
+
+/* 👥 Групи й тренери */
+VIEWS.groups = c => {
+  const tab = st.tab.groups || "groups", sel = st.sel.groups;
+  let listHtml = `<div class="tabs"><button class="tab ${tab === "groups" ? "on" : ""}" data-tab="groups">Групи</button><button class="tab ${tab === "coaches" ? "on" : ""}" data-tab="coaches">Тренерський склад</button></div>`;
+  if (tab === "groups") {
+    const bySenior = {}; GROUPS.forEach(G => (bySenior[G.senior] = bySenior[G.senior] || []).push(G));
+    listHtml += Object.entries(bySenior).map(([s, gs]) => `<div class="muted small" style="padding:10px 14px 4px;font-weight:700;text-transform:uppercase">${short(coach(s).name)}</div>` + gs.map(G => `<button class="row ${sel === G.g ? "sel" : ""}" data-id="${G.g}"><div class="t"><b>${G.g}</b><span class="r">${kids.filter(k => k.g === G.g && k.status !== "Припинений").length} вих.</span></div><div class="s">${G.coaches.map(x => short(coach(x).name)).join(", ")}</div></button>`).join("")).join("")
+      + `<button class="row" data-id="__new"><div class="t"><b>🆕 Нові вихованці без групи</b><span class="r"><span class="badge b-new">1</span></span></div></button>`;
+  } else {
+    listHtml += COACHES.map(x => `<button class="row ${sel === x.id ? "sel" : ""}" data-id="${x.id}"><div class="t"><b>${esc(short(x.name))}</b><span class="r">${x.tg ? "📱" : "—"}</span></div><div class="s">${x.role} · доступ: ${x.access}</div></button>`).join("")
+      + `<div style="padding:12px 14px"><button class="btn sm" id="newCoach">➕ Новий тренер</button></div>`;
+  }
+  let det = `<div class="empty"><b>👥</b>Оберіть ${tab === "groups" ? "групу" : "тренера"}</div>`;
+  const G = GROUPS.find(x => x.g === sel), T = COACHES.find(x => x.id === sel);
+  if (G) {
+    const ks = kids.filter(k => k.g === G.g && k.status !== "Припинений");
+    const ev = [0, 1, 2, 3, 4, 5, 6].map(d => dayEvents(d).filter(e => e.what === G.g).map(e => ({...e, d}))).flat();
+    const DN = ["Чт 12.11","Пт 13.11","Сб 14.11","Нд 15.11","Пн 16.11","Вт 17.11","Ср 18.11"];
+    det = `<div class="dhead"><div style="font-size:30px">👥</div><div><div class="ttl">Група ${G.g}</div><div class="yline"></div></div></div>
+      <dl class="meta"><dt>Старший тренер</dt><dd>${esc(coach(G.senior).name)}</dd><dt>Тренери</dt><dd>${G.coaches.map(x => esc(short(coach(x).name))).join(", ")}</dd><dt>Вихованців</dt><dd>${ks.filter(k => k.status === "Активний").length} активних, ${ks.filter(k => k.status === "Призупинений").length} призупинених</dd></dl>
+      <div class="actions"><button class="btn" data-act="coaches">👟 Тренерський склад групи</button><button class="btn" data-act="sched">📅 Розклад на тиждень</button></div>
+      <h3>Склад</h3><table><tr><th>Дитина</th><th>Статус</th><th class="num">Відвід.</th><th>Документ</th><th class="num">Борг</th><th></th></tr>
+      ${ks.map(k => `<tr class="click" data-kid="${k.id}"><td><b>${esc(kname(k))}</b>${k.lastSeen > 21 ? " ⚠️" : ""}${memById(k.member).benefit ? " 🎟" : ""}</td><td>${k.status}</td><td class="num">${k.att}%</td><td>${docBadge(k)}</td><td class="num">${k.debt ? fmt(k.debt) : "—"}</td><td><button class="btn sm" data-move="${k.id}">🔄</button></td></tr>`).join("")}</table>
+      <h3>Розклад на тиждень</h3>${ev.map(e => `<div class="ev"><span class="tm">${DN[e.d]}</span><span>${e.t} · ${e.room}</span><span class="muted">${e.who}</span></div>`).join("") || `<div class="muted">Подій немає</div>`}`;
+  } else if (sel === "__new") {
+    det = `<div class="ttl" style="font-weight:900;font-style:italic;font-size:22px;text-transform:uppercase">Нові вихованці без групи</div><div class="yline"></div>
+      <div class="card" style="margin-top:14px"><b>Сидоренко Тимофій</b>, 2020 р. н. · заява прийнята 10.11 · член ГО Сидоренко Анна<div class="actions">${GROUPS.slice(-2).map(G => `<button class="btn sm p" data-enroll="${G.g}">Зарахувати в ${G.g}</button>`).join("")}</div></div>`;
+  } else if (T) {
+    const gs = GROUPS.filter(g => g.coaches.includes(T.id));
+    det = `<div class="dhead"><div style="font-size:30px">👟</div><div><div class="ttl">${esc(T.name)}</div><div class="yline"></div></div></div>
+      <dl class="meta"><dt>Посада</dt><dd>${T.role}</dd><dt>Telegram</dt><dd>${T.tg ? "📱 підключено" : "не підключено"}</dd><dt>Доступ</dt><dd>${T.access}</dd><dt>Групи</dt><dd>${gs.map(g => g.g).join(", ") || "—"}</dd></dl>
+      <div class="actions"><button class="btn" data-act="access">🛡 Доступ</button><button class="btn" data-act="cab">👁 Кабінет тренера</button><button class="btn er" data-act="fire">🚫 Звільнити</button></div>`;
+  }
+  split(c, listHtml, det, !!(G || T || sel === "__new"));
+  c.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { st.tab.groups = b.dataset.tab; st.sel.groups = null; render(); });
+  c.querySelectorAll("[data-id]").forEach(b => b.onclick = () => go("groups", b.dataset.id));
+  c.querySelectorAll("[data-kid]").forEach(b => b.onclick = e => { if (e.target.closest("[data-move]")) return; go("members", b.dataset.kid); });
+  c.querySelectorAll("[data-move]").forEach(b => b.onclick = () => moveModal(kidById(b.dataset.move)));
+  c.querySelectorAll("[data-enroll]").forEach(b => b.onclick = () => demoDone("зараховано в " + b.dataset.enroll + "; батькам і тренеру — повідомлення"));
+  c.querySelectorAll("[data-act]").forEach(b => b.onclick = () => demoDone({coaches:"зміна тренерів групи — у наступній версії демо", sched:"розклад — нижче на сторінці", access:"доступ тренера: Суми / Без сум", cab:"кабінет тренера відкриється в чаті", fire:"звільнення прибирає тренера з груп і доступів (з підтвердженням)"}[b.dataset.act]));
+  const nc = c.querySelector("#newCoach"); if (nc) nc.onclick = () => askText("Новий тренер", "ПІБ, телефон, посада (старший тренер / тренер / асистент)", t => t && demoDone("тренера додано в «Персонал»"));
+};
+
+/* 💰 Фінанси */
+VIEWS.finance = c => {
+  const mo = st.month, tab = st.tab.finance || "sum";
+  seed = 500 + mo;
+  const rows = GROUPS.map(G => { const ks = kids.filter(k => k.g === G.g && k.status !== "Припинений"); const due = ks.reduce((s, k) => s + FEE * (1 - (memById(k.member).benefit || 0) / 100), 0);
+    const debt = mo === NOW_MONTH ? ks.reduce((s, k) => s + Math.min(k.debt, FEE), 0) + Math.round(rnd() * 3) * FEE : Math.round(rnd() * 2) * FEE; return {G, due, paid: due - debt, debt, ks}; });
+  const tot = rows.reduce((a, r) => ({due: a.due + r.due, paid: a.paid + r.paid, debt: a.debt + r.debt}), {due:0, paid:0, debt:0});
+  const sel = st.sel.finance;
+  let html = `<div class="toolbar"><div class="seg">${MONTHS.slice(0, NOW_MONTH + 1).map((m, i) => `<button class="${i === mo ? "on" : ""}" data-mo="${i}">${m}</button>`).join("")}</div>
+    <div class="seg"><button class="${tab === "sum" ? "on" : ""}" data-tab="sum">Підсумок</button><button class="${tab === "ind" ? "on" : ""}" data-tab="ind">💵 Індивідуальні</button></div></div>`;
+  if (tab === "sum") {
+    html += `<div class="grid g3"><div class="card kpi"><div class="l">Нараховано · ${MONTHS[mo]}</div><div class="v">${fmt(tot.due)}</div></div><div class="card kpi"><div class="l">Сплачено</div><div class="v">${fmt(tot.paid)}</div><div class="d">${Math.round(tot.paid / tot.due * 100)}% від нарахованого</div></div><div class="card kpi y"><div class="l">Борг за місяць</div><div class="v">${fmt(tot.debt)}</div></div></div>
+      <h2>Групи за старшими тренерами</h2><table><tr><th>Група</th><th>Старший тренер</th><th class="num">Нараховано</th><th class="num">Сплачено</th><th class="num">Борг</th><th style="width:140px">Оплата</th></tr>
+      ${rows.sort((a, b) => a.G.senior.localeCompare(b.G.senior)).map(r => `<tr class="click" data-g="${r.G.g}"><td><b>${r.G.g}</b></td><td>${short(coach(r.G.senior).name)}</td><td class="num">${fmt(r.due)}</td><td class="num">${fmt(r.paid)}</td><td class="num">${r.debt ? `<b style="color:var(--er)">${fmt(r.debt)}</b>` : "—"}</td><td><div class="bar"><i style="width:${Math.round(r.paid / r.due * 100)}%"></i></div></td></tr>`).join("")}
+      <tr><td colspan="2"><b>🏟 Клуб загалом</b></td><td class="num"><b>${fmt(tot.due)}</b></td><td class="num"><b>${fmt(tot.paid)}</b></td><td class="num"><b>${fmt(tot.debt)}</b></td><td></td></tr></table>`;
+    const r = rows.find(x => x.G.g === sel);
+    if (r) html += `<div class="card" style="margin-top:16px"><h2>Звіт по групі ${r.G.g} · ${MONTHS[mo]}</h2>
+      <table><tr><th>Дитина</th><th class="num">Борг за місяць</th><th class="num">Загальний борг</th></tr>${r.ks.filter(k => k.debt).map(k => `<tr><td>${esc(kname(k))}</td><td class="num">${fmt(Math.min(k.debt, FEE))}</td><td class="num">${fmt(k.debt)}</td></tr>`).join("") || `<tr><td colspan="3" class="muted">Боргів немає</td></tr>`}</table>
+      <div class="actions"><button class="btn p" data-send="now">📤 Надіслати тренеру ⚡ негайно</button><button class="btn" data-send="work">🕒 У робочий час тренера</button><button class="btn" data-send="me">📥 Надіслати собі</button></div></div>`;
+  } else {
+    html += `<h2>💵 Індивідуальні тренування · ${MONTHS[mo]}</h2><table><tr><th>Тренер</th><th class="num">Занять</th><th class="num">Годин</th><th class="num">Оренда, грн</th></tr>
+      ${COACHES.slice(0, 4).map((x, i) => `<tr><td>${esc(short(x.name))}</td><td class="num">${3 + i * 2}</td><td class="num">${(3 + i * 2) * 1}</td><td class="num">${fmt((3 + i * 2) * 400)}</td></tr>`).join("")}</table>`;
+  }
+  c.innerHTML = html;
+  c.querySelectorAll("[data-mo]").forEach(b => b.onclick = () => { st.month = +b.dataset.mo; render(); });
+  c.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { st.tab.finance = b.dataset.tab; render(); });
+  c.querySelectorAll("[data-g]").forEach(b => b.onclick = () => { st.sel.finance = b.dataset.g; render(); setTimeout(() => c.scrollTo({top: c.scrollHeight, behavior: "smooth"}), 30); });
+  c.querySelectorAll("[data-send]").forEach(b => b.onclick = () => demoDone({now:"звіт надіслано старшому тренеру", work:"звіт піде тренеру в його робочий час", me:"копія звіту — вам у чат"}[b.dataset.send]));
+};
+
+/* 🏟 Зайнятість */
+VIEWS.occupancy = c => {
+  const o = st.occ, DN = ["Чт","Пт","Сб","Нд","Пн","Вт","Ср"];
+  const days = o.mode === "day" ? [o.d] : o.mode === "week" ? [0, 1, 2, 3, 4, 5, 6].map(i => o.d + i) : Array.from({length: 30}, (_, i) => o.d + i);
+  const label = d => { const dt = new Date(2026, 10, 12 + d); return DN[((d % 7) + 7) % 7] + " " + String(dt.getDate()).padStart(2, "0") + "." + String(dt.getMonth() + 1).padStart(2, "0"); };
+  const all = days.map(d => ({d, ev: dayEvents(d).filter(e => !o.room || e.room === o.room)}));
+  const hours = {}; const byKind = {}; all.forEach(x => x.ev.forEach(e => { const [a, b] = e.t.split("–").map(s => { const [h, m] = s.split(":"); return +h + (+m) / 60; }); hours[e.room] = (hours[e.room] || 0) + (b - a); byKind[e.kind] = (byKind[e.kind] || 0) + (b - a); }));
+  const n = all.reduce((s, x) => s + x.ev.length, 0);
+  c.innerHTML = `<div class="toolbar"><div class="seg">${[["day","День"],["week","Тиждень"],["month","Місяць"]].map(m => `<button class="${o.mode === m[0] ? "on" : ""}" data-mode="${m[0]}">${m[1]}</button>`).join("")}</div>
+    <button class="btn sm" data-sh="-1">◀️</button><b>${o.mode === "day" ? label(o.d) : label(days[0]) + " — " + label(days[days.length - 1])}</b><button class="btn sm" data-sh="1">▶️</button><button class="btn sm" data-sh="0">↩️ Сьогодні</button>
+    <span class="sp" style="flex:1"></span><button class="btn p" id="book">📌 Бронь приміщення</button></div>
+    <div class="chips" style="padding:0 0 12px"><button class="chip ${!o.room ? "on" : ""}" data-room="">Уся база</button>${ROOMS.map(r => `<button class="chip ${o.room === r ? "on" : ""}" data-room="${r}">${r}</button>`).join("")}</div>
+    <div class="grid g2"><div class="card"><h2>📋 Події · ${n}</h2>${all.map(x => x.ev.length ? `${o.mode !== "day" ? `<h3>${label(x.d)}</h3>` : ""}${x.ev.map(e => `<div class="ev"><span class="tm">${e.t}</span><span><span class="dot" style="background:${KINDS[e.kind][2]}"></span>${KINDS[e.kind][0]} ${esc(e.what)}</span><span class="muted">${e.room}</span></div>`).join("")}` : "").join("") || `<div class="muted">Подій немає</div>`}</div>
+    <div class="card"><h2>📊 Звіт</h2><div class="small muted">Усього: ${n} подій, ${Object.values(hours).reduce((a, b) => a + b, 0).toFixed(1)} год</div>
+      <h3>За видами</h3>${Object.entries(byKind).map(([k, h]) => `<div class="setrow"><div>${KINDS[k][0]} ${KINDS[k][1]}</div><b>${h.toFixed(1)} год</b></div>`).join("")}
+      <h3>По приміщеннях</h3>${Object.entries(hours).sort((a, b) => b[1] - a[1]).map(([r, h]) => `<div style="margin:8px 0"><div class="small" style="display:flex"><span>${r}</span><b style="margin-left:auto">${h.toFixed(1)} год</b></div><div class="bar"><i style="width:${Math.min(100, h / Math.max(...Object.values(hours)) * 100)}%"></i></div></div>`).join("")}</div></div>`;
+  c.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { o.mode = b.dataset.mode; render(); });
+  c.querySelectorAll("[data-sh]").forEach(b => b.onclick = () => { const s = +b.dataset.sh; o.d = s === 0 ? 0 : o.d + s * (o.mode === "day" ? 1 : o.mode === "week" ? 7 : 30); render(); });
+  c.querySelectorAll("[data-room]").forEach(b => b.onclick = () => { o.room = b.dataset.room; render(); });
+  c.querySelector("#book").onclick = () => modal(`<h3>📌 Бронь приміщення</h3><label>Приміщення</label><select>${ROOMS.map(r => `<option>${r}</option>`).join("")}</select><label>Дата</label><input type="date" value="2026-11-14"><label>Час</label><input placeholder="18:00–19:30"><label>Назва</label><input placeholder="Нарада тренерів">
+    <div class="actions"><button class="btn p" id="ok">Забронювати</button><button class="btn" id="no">Скасувати</button></div>`, (m, close) => { m.querySelector("#no").onclick = close; m.querySelector("#ok").onclick = () => { close(); demoDone("бронь внесено в календар приміщення й «Зайнятість»"); }; });
+};
+
+/* 🆕 Новенькі */
+VIEWS.newcomers = c => {
+  const TB = {"Очікує підтвердження":"b-new","Підтверджено":"b-in","Прийшов":"b-ok","Прийшов → заява":"b-ok","Не прийшов":"b-er"};
+  c.innerHTML = `<div class="grid g4"><div class="card kpi"><div class="l">Заявок на ознайомче · листопад</div><div class="v">${trials.length}</div></div><div class="card kpi"><div class="l">Прийшли</div><div class="v">${trials.filter(t => t.st.startsWith("Прийшов")).length}</div></div><div class="card kpi"><div class="l">Подали заяву</div><div class="v">${trials.filter(t => t.st.includes("заява")).length}</div></div><div class="card kpi y"><div class="l">Конверсія</div><div class="v">${Math.round(trials.filter(t => t.st.includes("заява")).length / trials.length * 100)}%</div></div></div>
+    <div class="grid g2" style="margin-top:14px"><div class="card"><h2>🆕 Ознайомчі тренування</h2><table><tr><th>Дитина</th><th>Група</th><th>Заняття</th><th>Статус</th></tr>${trials.map(t => `<tr><td><b>${esc(t.name)}</b><div class="muted small">${esc(t.guardian)}</div></td><td>${t.g}</td><td>${t.date}</td><td><span class="badge ${TB[t.st]}">${t.st}</span></td></tr>`).join("")}</table></div>
+    <div class="card"><h2>➕ Разові відвідування</h2><table><tr><th>Дитина</th><th>Група</th><th class="num">Візитів</th><th>Востаннє</th></tr>${singles.map(s => `<tr><td>${esc(s.name)}</td><td>${s.g}</td><td class="num">${s.visits}</td><td>${s.last}</td></tr>`).join("")}</table>
+      <h2>📝 Заяви на вступ</h2>${inbox.filter(x => x.type === "join").map(x => `<button class="row" data-card="${x.id}"><div class="t"><b>${esc(x.from)}</b><span class="r">${badge(x.status)}</span></div><div class="s">${x.id} · ${x.when}</div></button>`).join("")}</div></div>`;
+  c.querySelectorAll("[data-card]").forEach(el => el.onclick = () => go("inbox", el.dataset.card));
+};
+
+/* 📊 Звіти */
+VIEWS.reports = c => {
+  const tab = st.tab.reports || "use";
+  const T = [["use","📱 Хто користується"],["disc","📝 Дисципліна відвідування"],["absent","😴 Не ходять"],["week","📨 Звернення за тиждень"]];
+  let html = `<div class="toolbar"><div class="seg">${T.map(t => `<button class="${tab === t[0] ? "on" : ""}" data-tab="${t[0]}">${t[1]}</button>`).join("")}</div></div>`;
+  if (tab === "use") {
+    const rows = GROUPS.map(G => { const fam = [...new Set(kids.filter(k => k.g === G.g && k.status !== "Припинений").map(k => k.member))]; const on = fam.filter(id => memById(id).tg).length; return {g: G.g, fam: fam.length, on}; });
+    const F = rows.reduce((s, r) => s + r.fam, 0), O = rows.reduce((s, r) => s + r.on, 0);
+    html += `<div class="grid g3"><div class="card kpi y"><div class="l">Родин у Сокіл Цифровий</div><div class="v">${Math.round(O / F * 100)}%</div><div class="d">${O} з ${F}</div></div></div>
+      <h2>По групах</h2><table><tr><th>Група</th><th class="num">Родин</th><th class="num">Підключено</th><th style="width:40%">%</th></tr>${rows.sort((a, b) => b.on / b.fam - a.on / a.fam).map(r => `<tr><td><b>${r.g}</b></td><td class="num">${r.fam}</td><td class="num">${r.on}</td><td><div style="display:flex;gap:8px;align-items:center"><div class="bar" style="flex:1"><i style="width:${Math.round(r.on / r.fam * 100)}%"></i></div><b style="width:40px;text-align:right">${Math.round(r.on / r.fam * 100)}%</b></div></td></tr>`).join("")}</table>
+      <div class="actions"><button class="btn p" data-x="list">📋 Список непідключених — старшим тренерам</button></div>`;
+  } else if (tab === "disc") {
+    html += `<h2>Минулий тиждень · по тренерах</h2><table><tr><th>Тренер</th><th class="num">Тренувань</th><th class="num">Постфактум</th><th class="num">Внесено < 2 год</th><th class="num">Виправлень</th></tr>${COACHES.slice(0, 5).map((x, i) => `<tr><td>${esc(short(x.name))}</td><td class="num">${6 + i}</td><td class="num">${i % 3}</td><td class="num">${i % 2}</td><td class="num">${i === 2 ? 1 : 0}</td></tr>`).join("")}</table>`;
+  } else if (tab === "absent") {
+    const l = kids.filter(k => k.lastSeen > 21 && k.status === "Активний");
+    html += `<h2>Не ходять понад 3 тижні · ${l.length}</h2><table><tr><th>Дитина</th><th>Група</th><th class="num">Днів</th><th>Відповідь родини</th></tr>${l.map(k => `<tr class="click" data-kid="${k.id}"><td>${esc(kname(k))}</td><td>${k.g}</td><td class="num">${k.lastSeen}</td><td class="muted">${pick(["—","повернемося","хворіє","інша причина"])}</td></tr>`).join("")}</table>`;
+  } else {
+    html += `<div class="grid g4"><div class="card kpi"><div class="l">Надійшло</div><div class="v">14</div></div><div class="card kpi"><div class="l">Закрито вчасно</div><div class="v">11</div></div><div class="card kpi"><div class="l">Прострочено</div><div class="v">2</div></div><div class="card kpi"><div class="l">Середній час</div><div class="v">5 год</div></div></div>`;
+  }
+  c.innerHTML = html;
+  c.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { st.tab.reports = b.dataset.tab; render(); });
+  c.querySelectorAll("[data-kid]").forEach(b => b.onclick = () => go("members", b.dataset.kid));
+  c.querySelectorAll("[data-x]").forEach(b => b.onclick = () => demoDone("кожен старший тренер отримає список родин своїх груп"));
+};
+
+/* 👁 Кабінети й демо */
+VIEWS.views = c => {
+  const R = [["⚽","Тренер","реальні кабінети тренерів"],["👨‍👧","Член ГО","будь-який член або демо-родина"],["🤝","Довірена особа","демо"],["🙋","Гість","шлях новачка: ознайомче, вступ"],["🎖","Почесний президент","демо"],["🌱","Агроном","демо"],["☕","Кафе","демо"]];
+  c.innerHTML = `<div class="grid g3">${R.map(r => `<div class="card"><div style="font-size:30px">${r[0]}</div><h3 style="margin:6px 0 2px">${r[1]}</h3><div class="muted small">${r[2]}</div><div class="actions"><button class="btn sm p" data-r="${r[1]}">👁 Відкрити</button></div></div>`).join("")}</div>
+    <h2>Кабінети тренерів</h2><table><tr><th>Тренер</th><th>Групи</th><th>Telegram</th><th>Доступ</th><th></th></tr>${COACHES.map(x => `<tr><td>${esc(x.name)}</td><td>${GROUPS.filter(g => g.coaches.includes(x.id)).map(g => g.g).join(", ")}</td><td>${x.tg ? "📱" : "—"}</td><td>${x.access}</td><td><button class="btn sm" data-r="${x.name}">👁</button></td></tr>`).join("")}</table>
+    <p class="muted small">Перегляд відкривається в чаті Сокіл Цифровий (як зараз): усі кнопки, нічого не зберігається.</p>`;
+  c.querySelectorAll("[data-r]").forEach(b => b.onclick = () => demoDone("кабінет «" + b.dataset.r + "» відкриється в чаті в режимі перегляду"));
+};
+
+/* 🛠 Технічне */
+const CMDS = [["🩺 Стан системи","/tech",`✅ Сокіл Цифровий 2.13.0 працює 3 д 4 год\nGoogle: доступний · черга записів: 0 · знімок: 18 наборів\nКопія 03:12 — перевірено, на дисках 2 з 2\nПомилок за добу: 0`],
+  ["📑 Перевірка аркушів","/sheets_check",`Усі аркуші й колонки на місці.\nВітрини без помилок.\nЗаповненість: «Інформація для бота» 3 %, «Сокіл · Дані бота» 7 %.`],
+  ["💾 Резервна копія зараз","/backup",`Архів sokil-2026-11-12.zip (2,1 МБ) — перевірено, відновлюється.\nЗавантажено на обидва Диски.`],
+  ["🛟 Знімок таблиць","/gtest snap",`Знімок: 18 наборів, 23 запити, найстаріший — 7 хв тому.`],
+  ["📜 Журнал помилок","/logs",`12.11 03:12 INFO backup ok\n11.11 22:40 WARN Google 503 — повтор успішний`],
+  ["⛔ Недопуск за борг","/debt_block",`Зараз не допущено: 3 дітей.\nСьогодні заблокувало б: 3.`],
+  ["📝 Дисципліна відвідування","/att_week","Звіт за минулий тиждень надіслано вам у чат."],
+  ["📄 Хто без документа","/docs_missing",`Без документа: 37 дітей (активні).`]];
+VIEWS.tech = c => {
+  c.innerHTML = `<div class="grid g4"><div class="card kpi"><div class="l">Сокіл Цифровий</div><div class="v" style="color:var(--ok)">✅</div><div class="d">працює 3 д 4 год</div></div><div class="card kpi"><div class="l">Google</div><div class="v" style="color:var(--ok)">✅</div><div class="d">черга записів: 0</div></div><div class="card kpi"><div class="l">Копія</div><div class="v">03:12</div><div class="d">2 з 2 дисків</div></div><div class="card kpi"><div class="l">Помилок / добу</div><div class="v">0</div></div></div>
+    <h2>Команди адміністратора</h2><div class="grid g4">${CMDS.map((x, i) => `<button class="card kpi click" style="text-align:left" data-cmd="${i}"><div style="font-weight:800">${x[0]}</div><div class="muted small">${x[1]}</div></button>`).join("")}</div>
+    <div id="out" style="margin-top:14px"></div>`;
+  c.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => { const x = CMDS[+b.dataset.cmd]; c.querySelector("#out").innerHTML = `<div class="card"><h3 style="margin-top:0">${x[0]} <span class="muted small">${x[1]}</span></h3><pre class="out">${esc(x[2])}</pre></div>`; });
+};
+
+/* 🔔 Налаштування */
+const NOTIF = [["absence","📅 Відсутність дітей",true],["exit","🚪 Відрахування й вихід з ГО",true],["debts","📬 Зведення розсилки нагадувань (15-го і 28-го)",true],["coaches","👥 Зміни тренерів і переведення старшими",true],["trusted","🤝 Довірені особи членів ГО",false],["comments","💬 Коментарі тренерів до відвідування",true]];
+VIEWS.settings = c => {
+  c.innerHTML = `<div class="grid g2"><div class="card"><h2>🔔 Мої сповіщення</h2><div class="setrow"><div>Час сповіщень</div><b>10:00–19:00</b></div>
+    ${NOTIF.map(n => `<div class="setrow"><div>${n[1]}</div><button class="switch ${n[2] ? "on" : ""}" data-n="${n[0]}"></button></div>`).join("")}
+    <p class="muted small">Не вимикаються: звернення в підтримку, переведення в групи без старшого тренера, нові вихованці без групи, конфлікти, технічні.</p></div>
+    <div class="card"><h2>🎨 Вигляд</h2><div class="setrow"><div>Тема</div><div class="seg" style="flex:none"><button data-th="dark">🌙 Темна</button><button data-th="light">☀️ Світла</button></div></div>
+    <h2>📝 Тексти й налаштування</h2><div class="small">Тексти «Про клуб», «Важливо знати», нагадування — аркуші «Інформація для бота».<br>Базовий внесок: <b>${fmt(FEE)}</b></div></div></div>`;
+  c.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { const n = NOTIF.find(x => x[0] === b.dataset.n); n[2] = !n[2]; b.classList.toggle("on"); demoDone("налаштування збережено"); });
+  c.querySelectorAll("[data-th]").forEach(b => { b.classList.toggle("on", theme() === b.dataset.th); b.onclick = () => { setTheme(b.dataset.th); render(); }; });
+};
+
+/* ═══════════════════════════ ТЕМА, TELEGRAM, СТАРТ ═══════════════════════════ */
+function theme() { return document.documentElement.dataset.theme === "light" ? "light" : "dark"; }
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  $("#themeBtn").textContent = t === "light" ? "☀️ Світла" : "🌙 Темна";
+  try { localStorage.setItem("sokil_theme", t); } catch (e) {}
+  const tg = window.Telegram && Telegram.WebApp; if (tg && tg.setHeaderColor) { try { tg.setHeaderColor("#000000"); tg.setBackgroundColor(t === "light" ? "#F4F4F1" : "#0A0A0A"); } catch (e) {} }
+}
+(function init() {
+  let t = "dark"; try { t = localStorage.getItem("sokil_theme") || "dark"; } catch (e) {}
+  setTheme(t);
+  $("#themeBtn").onclick = () => { setTheme(theme() === "light" ? "dark" : "light"); if (st.sec === "settings") render(); };
+  const tg = window.Telegram && Telegram.WebApp;
+  if (tg && tg.initData) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    const u = tg.initDataUnsafe && tg.initDataUnsafe.user; if (u) $("#who").textContent = (u.first_name || "") + " " + (u.last_name || "") + " · демо";
+  }
+  $("#fsBtn").onclick = () => {
+    if (tg && tg.requestFullscreen && tg.isVersionAtLeast && tg.isVersionAtLeast("8.0")) { try { tg.isFullscreen ? tg.exitFullscreen() : tg.requestFullscreen(); return; } catch (e) {} }
+    const d = document; if (d.fullscreenElement) d.exitFullscreen && d.exitFullscreen(); else d.documentElement.requestFullscreen && d.documentElement.requestFullscreen().catch(() => toast("Повний екран недоступний"));
+  };
+  $("#q").addEventListener("input", e => {
+    st.q = e.target.value.trim(); const v = st.q.toUpperCase();
+    if (/^З-\d{4}$/.test(v) && inbox.find(x => x.id === v)) return go("inbox", v);
+    if (/^ЗВР-\d{4}$/.test(v) && appeals.find(x => x.id === v)) return go("appeals", v);
+    if (st.sec !== "members") { st.sec = "members"; } render();
+    const inp = $("#q"); inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
+  });
+  const clock = () => { const d = new Date(); $("#clock").textContent = d.toLocaleDateString("uk-UA", {weekday:"long", day:"numeric", month:"long"}) + " · " + d.toTimeString().slice(0, 5); };
+  clock(); setInterval(clock, 30000);
+  // Посилання з чату «🖥 Відкрити»: #inbox/З-0141 або ?startapp=inbox_З-0141 (етап 2)
+  const h = decodeURIComponent((location.hash || "").slice(1)); const sp = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+  const [sec, sel] = (h || (sp ? sp.replace("_", "/") : "")).split("/");
+  if (sec && SECTIONS.find(s => s[0] === sec)) { st.sec = sec; if (sel) st.sel[sec] = sel; }
+  render();
+})();
+</script>
+</body>
+</html>
