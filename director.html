@@ -519,7 +519,7 @@ VIEWS.appeals = c => {
     const m = memById(sel.member), ks = m.kids.map(kidById);
     det = `<div class="dhead"><div style="font-size:30px">📨</div><div><div class="ttl">${sel.id} · ${esc(sel.topic)}</div><div class="yline"></div></div></div>
       <dl class="meta"><dt>Заявник</dt><dd><a href="#" data-mem="${m.id}">${esc(mname(m))}</a> · ${m.id} · ${m.cat}</dd><dt>Діти</dt><dd>${ks.map(k => `${esc(kname(k))} (${k.g}, ${k.status.toLowerCase()})`).join("; ")}</dd>
-      <dt>Внесок зараз</dt><dd>${fmt(feeOf(m))} / міс${m.benefit ? ` · пільга ${m.benefit}%` : ""}</dd><dt>Статус</dt><dd><span class="badge ${AP_ST[sel.status][1]}">${AP_ST[sel.status][0]}</span></dd></dl>
+      <dt>Внесок зараз</dt><dd>${fmt(feeOf(m))} / міс${m.benefit ? ` · фін. підтримка ${m.benefit}%` : ""}</dd><dt>Статус</dt><dd><span class="badge ${AP_ST[sel.status][1]}">${AP_ST[sel.status][0]}</span></dd></dl>
       <h3>Листування</h3>
       ${sel.thread.map(t => `<div class="msg ${t.who === "d" ? "me" : t.who === "p" ? "pres" : ""}"><small>${t.who === "d" ? "Ви (директор)" : t.who === "p" ? "Почесний президент" : esc(m.first)} · ${t.t}</small>${esc(t.text)}</div>`).join("")}
       ${files(sel.files)}
@@ -528,7 +528,7 @@ VIEWS.appeals = c => {
         <button class="btn p" data-act="reply">✍️ Відповісти заявнику</button>
         ${sel.status === "new" ? `<button class="btn" data-act="pres">🤝 На розгляд президенту</button>` : ""}
         ${sel.status === "pres" ? `<button class="btn" data-act="presview">👁 Як бачить президент</button><button class="btn" data-act="presok">▶️ Демо: президент погодив</button>` : ""}
-        <button class="btn" data-act="benefit">🎟 Пільга вручну</button>
+        <button class="btn" data-act="benefit">🎟 Фінансова підтримка вручну</button>
         <button class="btn" data-act="archive">🗄 В архів на Диску</button>
       </div>
       ${sel.archived ? `<div class="muted small">🗄 Листування збережено в архів: «Сокіл · Пільги / ${m.id} ${esc(m.sur)}».</div>` : ""}`;
@@ -545,7 +545,7 @@ VIEWS.appeals = c => {
       if (a === "pres") presModal(sel);
       if (a === "presview") presPreview(sel);
       if (a === "presok") { const p = sel.proposal && sel.proposal.endsWith("%") ? parseInt(sel.proposal) : 50; sel.thread.push({who:"p", t:nowStr(), text:"Погоджую " + p + "%."}); sel.status = "decided"; sel.decision = p + "%"; m.benefit = Math.max(m.benefit, p); m.benefitBy = "Почесний президент, " + nowStr();
-        demoDone(`пільга ${p}% → скрипт реєстру внесе в «Пільги щодо внесків»; вам — інформація, заявнику відповідаєте ви`); render(); }
+        demoDone(`фінансова підтримка ${p}% → скрипт реєстру внесе в «Пільги щодо внесків»; вам — інформація, заявнику відповідаєте ви`); render(); }
       if (a === "benefit") benefitModal(m);
       if (a === "archive") { sel.archived = true; if (sel.status === "decided") sel.status = "done"; demoDone("листування й файли збережено на Диску"); render(); }
     });
@@ -573,14 +573,14 @@ function presPreview(ap) {
 }
 function benefitModal(m) {
   let v = String(m.benefit || 0);
-  modal(`<h3>🎟 Пільга — ${esc(m.sur + " " + m.first)}</h3><div class="muted small">Зараз: ${m.benefit || 0}%${m.benefitBy ? " (" + esc(m.benefitBy) + ")" : ""}. Іде в аркуш «Пільги_рішення» → скрипт реєстру. 10% і пільга не сумуються — береться більша.</div>
+  modal(`<h3>🎟 Фінансова підтримка — ${esc(m.sur + " " + m.first)}</h3><div class="muted small">Зараз: ${m.benefit || 0}%${m.benefitBy ? " (" + esc(m.benefitBy) + ")" : ""}. Іде в аркуш «Пільги_рішення» → скрипт реєстру. 10% і пільга не сумуються — береться більша.</div>
     <label>Розмір</label><div class="opts" id="pr">${["0","10","25","50","75","100"].map(o => `<button class="opt ${o === v ? "on" : ""}">${o}%</button>`).join("")}</div>
     <label>Або сума, грн на місяць</label><input id="sum" placeholder="напр. 1500">
-    <div class="actions"><button class="btn p" id="ok">Застосувати</button><button class="btn er" id="cancel">Скасувати пільгу</button><button class="btn" id="no">Закрити</button></div>`, (mm, close) => {
+    <div class="actions"><button class="btn p" id="ok">Застосувати</button><button class="btn er" id="cancel">Скасувати фінансову підтримку</button><button class="btn" id="no">Закрити</button></div>`, (mm, close) => {
     mm.querySelectorAll("#pr .opt").forEach(b => b.onclick = () => { mm.querySelectorAll("#pr .opt").forEach(x => x.classList.remove("on")); b.classList.add("on"); v = parseInt(b.textContent); });
     mm.querySelector("#no").onclick = close;
-    mm.querySelector("#cancel").onclick = () => { m.benefit = m.kids.length >= 2 ? 10 : 0; m.benefitBy = ""; close(); demoDone("пільгу скасовано (рядок «Скасовано»)"); render(); };
-    mm.querySelector("#ok").onclick = () => { const s = parseInt(mm.querySelector("#sum").value); if (s > 0) v = Math.round((1 - s / FEE) * 100); m.benefit = +v; m.benefitBy = "директор, " + nowStr(); close(); demoDone(`пільга ${v}% → скрипт реєстру`); render(); };
+    mm.querySelector("#cancel").onclick = () => { m.benefit = m.kids.length >= 2 ? 10 : 0; m.benefitBy = ""; close(); demoDone("фінансову підтримку скасовано (рядок «Скасовано»)"); render(); };
+    mm.querySelector("#ok").onclick = () => { const s = parseInt(mm.querySelector("#sum").value); if (s > 0) v = Math.round((1 - s / FEE) * 100); m.benefit = +v; m.benefitBy = "директор, " + nowStr(); close(); demoDone(`фінансова підтримка ${v}% → скрипт реєстру`); render(); };
   });
 }
 
@@ -605,8 +605,8 @@ VIEWS.members = c => {
     const ben = {}; members.forEach(m => { if (m.benefit) { const n = m.kids.map(kidById).filter(k => k.status === "Активний").length; ben[m.benefit] = (ben[m.benefit] || 0) + n; } });
     det = `<div class="grid g3"><div class="card kpi"><div class="l">Членів ГО</div><div class="v">${members.length}</div><div class="d">асоційованих ${members.filter(m => m.cat === "Асоційований").length} · дійсних ${members.filter(m => m.cat === "Дійсний").length}</div></div>
       <div class="card kpi"><div class="l">Вихованці</div><div class="v">${act}</div><div class="d">призупинених ${sus} · вибулих ${left}</div></div>
-      <div class="card kpi"><div class="l">З пільгою (активні діти)</div><div class="v">${Object.values(ben).reduce((a, b) => a + b, 0)}</div><div class="d">${Object.entries(ben).map(([p, n]) => p + "% — " + n).join(" · ")}</div></div></div>
-      <h2>Групи</h2><table><tr><th>Група</th><th>Старший тренер</th><th class="num">Активні</th><th class="num">Призуп.</th><th class="num">З пільгою</th></tr>
+      <div class="card kpi"><div class="l">З фінансовою підтримкою (активні діти)</div><div class="v">${Object.values(ben).reduce((a, b) => a + b, 0)}</div><div class="d">${Object.entries(ben).map(([p, n]) => p + "% — " + n).join(" · ")}</div></div></div>
+      <h2>Групи</h2><table><tr><th>Група</th><th>Старший тренер</th><th class="num">Активні</th><th class="num">Призуп.</th><th class="num">З фін. підтримкою</th></tr>
       ${GROUPS.map(G => { const ks = kids.filter(k => k.g === G.g); return `<tr class="click" data-grp="${G.g}"><td><b>${G.g}</b></td><td>${short(coach(G.senior).name)}</td><td class="num">${ks.filter(k => k.status === "Активний").length}</td><td class="num">${ks.filter(k => k.status === "Призупинений").length}</td><td class="num">${ks.filter(k => k.status === "Активний" && memById(k.member).benefit).length}</td></tr>`; }).join("")}</table>
       <p class="muted small">Оберіть людину зліва або скористайтесь пошуком угорі.</p>`;
   }
@@ -626,9 +626,9 @@ function memberCard(m) {
   return `<div class="dhead"><div style="font-size:30px">👤</div><div><div class="ttl">${esc(mname(m))}</div><div class="yline"></div></div></div>
     <dl class="meta"><dt>ID</dt><dd>${m.id} · ${m.cat} · ${m.status}</dd><dt>Телефон</dt><dd>${m.phone}</dd>${m.email ? `<dt>E-mail</dt><dd>${m.email}</dd>` : ""}
     <dt>Сокіл Цифровий</dt><dd>${m.tg ? "📱 підключено" : "<span class='muted'>не підключено</span>"}</dd>
-    <dt>Внесок</dt><dd><b>${fmt(feeOf(m))}</b> / міс${m.benefit ? ` · 🎟 пільга ${m.benefit}%${m.benefitBy ? " — " + esc(m.benefitBy) : " (2+ дітей, автоматично)"}` : ""}</dd>
+    <dt>Внесок</dt><dd><b>${fmt(feeOf(m))}</b> / міс${m.benefit ? ` · 🎟 фін. підтримка ${m.benefit}%${m.benefitBy ? " — " + esc(m.benefitBy) : " (2+ дітей, автоматично)"}` : ""}</dd>
     <dt>Борг</dt><dd>${fmt(ks.reduce((s, k) => s + k.debt, 0))}</dd></dl>
-    <div class="actions"><button class="btn" data-act="benefit">🎟 Пільга</button><button class="btn" data-act="view">👁 Кабінет так, як бачить він</button></div>
+    <div class="actions"><button class="btn" data-act="benefit">🎟 Фінансова підтримка</button><button class="btn" data-act="view">👁 Кабінет так, як бачить він</button></div>
     <h3>Діти</h3><table><tr><th>Дитина</th><th>Група</th><th>Статус</th><th>Документ</th><th class="num">Борг</th></tr>
     ${ks.map(k => `<tr class="click" data-kid="${k.id}"><td><b>${esc(kname(k))}</b> <span class="muted">${k.id}</span></td><td>${k.g}</td><td>${k.status}</td><td>${docBadge(k)}</td><td class="num">${k.debt ? fmt(k.debt) : "—"}</td></tr>`).join("")}</table>
     ${m.trusted.length ? `<h3>Довірені особи</h3>${m.trusted.map(t => `<div>🤝 ${esc(t.name)} · ${t.rights}</div>`).join("")}` : ""}
