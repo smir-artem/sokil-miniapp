@@ -10,7 +10,7 @@
   var me = document.currentScript;
   var BASE = (me && me.src ? me.src : "").replace(/[^\/]*(\?.*)?$/, "");
   var DATA = null, CUR = null, ARCH = {}, SEASONS = [], LOADING = null;
-  var VIEWS = [["table", "Таблиця"], ["matches", "Матчі"], ["scorers", "Бомбардири"], ["teams", "Команди"]];
+  var VIEWS = [["table", "Турнір"], ["matches", "Матчі"], ["scorers", "Бомбардири"], ["teams", "Команди"]];
   var MONTHS = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
   var DAYS = ["неділя", "понеділок", "вівторок", "середа", "четвер", "пʼятниця", "субота"];
 
@@ -56,7 +56,7 @@
     ".swc-card{background:#fff;border-radius:12px;max-width:340px;width:100%;overflow:hidden;position:relative}",
     ".swc-card .swc-ph{aspect-ratio:1/1}.swc-card .b{padding:12px 14px;border-top:4px solid var(--y)}",
     ".swc-card .x{position:absolute;top:6px;right:8px;border:0;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:30px;height:30px}",
-    ".swc-note{font-size:12px;color:var(--m);margin:-4px 0 10px}.swc-empty{color:var(--m);padding:16px 0}.swc-foot{font-size:12px;color:var(--m);padding:10px 0}",
+    ".swc-round{font-size:13px;font-weight:600;color:var(--m);margin:10px 0 2px;text-transform:uppercase;letter-spacing:.3px}.swc-note{font-size:12px;color:var(--m);margin:-4px 0 10px}.swc-empty{color:var(--m);padding:16px 0}.swc-foot{font-size:12px;color:var(--m);padding:10px 0}",
     "@media(max-width:560px){.swc{font-size:14px}.swc .hide-s{display:none}.swc-m .s{min-width:56px;font-size:15px}.swc-tabs button{padding:8px 10px}}"
   ].join("\n");
 
@@ -88,6 +88,8 @@
     var out = [];
     (c.stages || []).forEach(function (s) { var p = phaseOf(s.name); if (p && out.indexOf(p) < 0) out.push(p); });
     c.matches.forEach(function (m) { var p = phaseOf(m.stage); if (p && out.indexOf(p) < 0) out.push(p); });
+    var fr = out.indexOf("Товариські матчі");
+    if (fr >= 0) out.push(out.splice(fr, 1)[0]);  // товариські — в кінці
     return out.length > 1 ? out : [];
   }
   function inPhase(stage, ph) { return !ph || phaseOf(stage) === ph; }
@@ -122,9 +124,16 @@
 
   // ───────────── розділи ─────────────
   function viewTable(c, ph) {
-    var st = (c.stages || []).filter(function (s) { return s.kind === "table" && inPhase(s.name, ph); });
-    if (!st.length) return '<div class="swc-empty">Таблиця з’явиться після перших матчів.</div>';
+    var order = phases(c);
+    var st = (c.stages || []).filter(function (s) { return inPhase(s.name, ph); });
+    if (order.length) st = st.slice().sort(function (a, b) {
+      var pa = order.indexOf(phaseOf(a.name)), pb = order.indexOf(phaseOf(b.name));
+      return pa !== pb ? pa - pb : (a.kind === "table" ? 0 : 1) - (b.kind === "table" ? 0 : 1);
+    });
+    if (!st.filter(function (s) { return s.kind === "table" || c.matches.some(function (m) { return m.stage.indexOf(s.name) === 0; }); }).length)
+      return '<div class="swc-empty">Таблиця з’явиться після перших матчів.</div>';
     return st.map(function (s) {
+      if (s.kind !== "table") return viewRounds(c, s);
       var rows = s.table.map(function (r) {
         return "<tr><td>" + r.pos + '</td><td class="l">' + tname(r.team, true) + "</td><td>" + r.p + '</td><td class="hide-s">' + r.w +
           '</td><td class="hide-s">' + r.d + '</td><td class="hide-s">' + r.l + '</td><td class="m">' + r.gf + "–" + r.ga + '</td><td class="hide-s">' +
@@ -137,13 +146,28 @@
     }).join("");
   }
 
-  function matchRow(m) {
+  function viewRounds(c, s) {  // плей-офф і товариські: матчі за раундами
+    var ms = c.matches.filter(function (m) { return m.stage === s.name || m.stage.indexOf(s.name + " · ") === 0; });
+    if (!ms.length) return "";
+    var rounds = [], by = {};
+    ms.forEach(function (m) {
+      var r = m.stage.length > s.name.length ? m.stage.slice(s.name.length + 3) : "";
+      if (!by[r]) { by[r] = []; rounds.push(r); }
+      by[r].push(m);
+    });
+    return "<h3>" + esc(s.name) + "</h3>" + rounds.map(function (r) {
+      return (r ? '<div class="swc-round">' + esc(r) + "</div>" : "") + by[r].map(function (m) { return matchRow(m, true); }).join("");
+    }).join("");
+  }
+
+  function matchRow(m, inRound) {
     var s, cls = "s";
     if (m.status === "played") s = esc(m.score) + (m.pens ? '<div style="font-size:11px;font-weight:400">пен. ' + esc(m.pens) + "</div>" : "");
     else if (m.status === "live") { s = "триває"; cls += " live"; }
     else { s = esc(m.time || "—"); cls += " t"; }
     var meta = [];
-    if (m.stage) meta.push(esc(m.stage));
+    if (m.stage && !inRound) meta.push(esc(m.stage));
+    if (inRound && m.date) meta.push(esc(dayTitle(m.date)));
     if (m.status === "played" && m.time) meta.push(esc(m.time));
     if (m.status === "played" && !m.approved) meta.push('<span class="swc-badge">протокол на погодженні</span>');
     if (m.tech) meta.push(esc(m.tech));
