@@ -3,13 +3,13 @@
  * Вставка на сторінку (блок «Власний HTML» / вкладка «Текст»):
  *   <div class="sokil-wc"></div>
  *   <script src="https://smir-artem.github.io/sokil-miniapp/wintercup/wc.js"></script>
- * Необов'язково: data-category="2015-2016" — лише одна категорія; data-view="table|matches|scorers|teams" — вкладка за замовчуванням.
+ * Необов'язково: data-season="2025-2026" — лише архівний сезон; data-category="2015-2016" — лише одна категорія; data-view="table|matches|scorers|teams" — вкладка за замовчуванням.
  */
 (function () {
   "use strict";
   var me = document.currentScript;
   var BASE = (me && me.src ? me.src : "").replace(/[^\/]*(\?.*)?$/, "");
-  var DATA = null, LOADING = null;
+  var DATA = null, CUR = null, ARCH = {}, SEASONS = [], LOADING = null;
   var VIEWS = [["table", "Таблиця"], ["matches", "Матчі"], ["scorers", "Бомбардири"], ["teams", "Команди"]];
   var MONTHS = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
   var DAYS = ["неділя", "понеділок", "вівторок", "середа", "четвер", "пʼятниця", "субота"];
@@ -21,7 +21,7 @@
     ".swc-head b{color:var(--y);font-size:20px;display:block}.swc-head small{color:#bbb}",
     ".swc-cats,.swc-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 0}",
     ".swc-cats button{border:1px solid var(--k);background:#fff;color:var(--k);border-radius:18px;padding:5px 12px}",
-    ".swc-cats button.on{background:var(--k);color:var(--y)}",
+    ".swc-cats button.on{background:var(--k);color:var(--y)}.swc-seasons{padding-bottom:0}.swc-seasons button{border-radius:6px;font-size:13px;padding:4px 10px}",
     ".swc-tabs{border-bottom:2px solid var(--k);padding-bottom:0;flex-wrap:nowrap;overflow-x:auto;gap:4px}",
     ".swc-tabs button{border:0;background:var(--g);color:var(--k);padding:8px 14px;border-radius:8px 8px 0 0;white-space:nowrap}",
     ".swc-tabs button.on{background:var(--k);color:var(--y);font-weight:600}",
@@ -30,6 +30,7 @@
     ".swc th{background:var(--k);color:#fff;font-weight:500;font-size:13px;padding:6px 4px}",
     ".swc td{padding:6px 4px;border-bottom:1px solid #e5e5e5;text-align:center}",
     ".swc td.l,.swc th.l{text-align:left}.swc tr:nth-child(even) td{background:#fafafa}",
+    ".swc table.st{table-layout:fixed}.swc table.st th,.swc table.st td{width:38px}.swc table.st th:first-child,.swc table.st td:first-child{width:30px}.swc table.st .l{width:auto;overflow:hidden;text-overflow:ellipsis}.swc table.st th.m,.swc table.st td.m{width:58px}",
     ".swc td.pts{font-weight:700;background:#fff8c4!important}",
     ".swc .lg{width:22px;height:22px;object-fit:contain;vertical-align:middle;margin-right:6px}",
     ".swc .lnk{color:var(--k);text-decoration:none;border-bottom:1px dotted #999;cursor:pointer}",
@@ -47,6 +48,7 @@
     ".swc-pl{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px}",
     ".swc-p{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;background:#fff;cursor:pointer;text-align:center}",
     ".swc-ph{width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:40px;color:#ccc}",
+    ".swc-ph.none{aspect-ratio:auto;height:64px;font-size:22px;font-weight:700;color:var(--y);background:var(--k)}.swc-card .swc-ph.none{height:110px;aspect-ratio:auto;font-size:36px}",
     ".swc-p .n{padding:6px 6px 0;font-weight:600;font-size:14px}.swc-p .d{padding:0 6px 8px;font-size:12px;color:var(--m)}",
     ".swc-num{display:inline-block;min-width:24px;background:var(--y);color:var(--k);border-radius:4px;font-weight:700;margin-right:4px}",
     ".swc-back{border:0;background:none;color:var(--k);padding:10px 0;font-weight:600}",
@@ -63,9 +65,10 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  function url(p) { return p ? BASE + p : ""; }
+  function url(p) { return !p ? "" : /^https?:/.test(p) ? p : BASE + p; }
   function team(id) { return (DATA.teams && DATA.teams[id]) || { id: id, name: id || "—", logo: "", players: [] }; }
-  function logo(t) { return t.logo ? '<img class="lg" src="' + esc(url(t.logo)) + '" alt="">' : ""; }
+  var HIDE = ' onerror="this.style.display=\'none\'"';
+  function logo(t) { return t.logo ? '<img class="lg" src="' + esc(url(t.logo)) + '" alt=""' + HIDE + ">" : ""; }
   function tname(id, link) {
     var t = team(id);
     return logo(t) + (link && DATA.teams[id] ? '<a class="lnk" data-team="' + esc(id) + '">' + esc(t.name) + "</a>" : esc(t.name));
@@ -83,14 +86,25 @@
     return null;
   }
 
+  function getJSON(path) {
+    return fetch(BASE + path + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+  }
   function load(force) {
-    if (DATA && !force) return Promise.resolve(DATA);
+    if (CUR && !force) return Promise.resolve(CUR);
     if (LOADING) return LOADING;
-    LOADING = fetch(BASE + "data.json?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) { DATA = d; LOADING = null; return d; })
+    var idx = SEASONS.length && !force ? Promise.resolve(SEASONS) : getJSON("archive/index.json").catch(function () { return []; });
+    LOADING = Promise.all([getJSON("data.json"), idx])
+      .then(function (r) { CUR = r[0]; SEASONS = r[1] || []; LOADING = null; return CUR; })
       .catch(function (e) { LOADING = null; throw e; });
     return LOADING;
+  }
+  function loadSeason(s) {
+    if (!s) return Promise.resolve(CUR);
+    if (ARCH[s]) return Promise.resolve(ARCH[s]);
+    var it = SEASONS.filter(function (x) { return x.season === s; })[0];
+    if (!it) return Promise.resolve(CUR);
+    return getJSON(it.file).then(function (d) { ARCH[s] = d; return d; });
   }
 
   // ───────────── розділи ─────────────
@@ -100,12 +114,12 @@
     return st.map(function (s) {
       var rows = s.table.map(function (r) {
         return "<tr><td>" + r.pos + '</td><td class="l">' + tname(r.team, true) + "</td><td>" + r.p + '</td><td class="hide-s">' + r.w +
-          '</td><td class="hide-s">' + r.d + '</td><td class="hide-s">' + r.l + "</td><td>" + r.gf + "–" + r.ga + '</td><td class="hide-s">' +
+          '</td><td class="hide-s">' + r.d + '</td><td class="hide-s">' + r.l + '</td><td class="m">' + r.gf + "–" + r.ga + '</td><td class="hide-s">' +
           (r.gd > 0 ? "+" : "") + r.gd + '</td><td class="pts">' + r.pts + "</td></tr>";
       }).join("");
       return (s.name || st.length > 1 ? "<h3>" + esc(s.name || "Таблиця") + "</h3>" : "") +
-        '<table><tr><th>#</th><th class="l">Команда</th><th title="Ігри">І</th><th class="hide-s" title="Виграші">В</th><th class="hide-s" title="Нічиї">Н</th>' +
-        '<th class="hide-s" title="Поразки">П</th><th title="Голи">М</th><th class="hide-s" title="Різниця">±</th><th title="Очки">О</th></tr>' + rows + "</table>";
+        '<table class="st"><tr><th>#</th><th class="l">Команда</th><th title="Ігри">І</th><th class="hide-s" title="Виграші">В</th><th class="hide-s" title="Нічиї">Н</th>' +
+        '<th class="hide-s" title="Поразки">П</th><th class="m" title="Голи">М</th><th class="hide-s" title="Різниця">±</th><th title="Очки">О</th></tr>' + rows + "</table>";
     }).join("");
   }
 
@@ -157,13 +171,15 @@
     if (!c.teams.length) return '<div class="swc-empty">Команди ще не заявлені.</div>';
     return '<div class="swc-teams">' + c.teams.map(function (id) {
       var t = team(id);
-      return '<div class="swc-team" data-team="' + esc(id) + '">' + (t.logo ? '<img src="' + esc(url(t.logo)) + '" alt="">' : "") +
+      return '<div class="swc-team" data-team="' + esc(id) + '">' + (t.logo ? '<img src="' + esc(url(t.logo)) + '" alt=""' + HIDE + ">" : "") +
         "<div><b>" + esc(t.name) + '</b><div style="font-size:12px;color:#6b6b6b">' + esc(t.club || "") + " · гравців: " + (t.players || []).length + "</div></div></div>";
     }).join("") + "</div>";
   }
 
   function photo(p, cls) {
-    return p.photo ? '<img class="swc-ph ' + (cls || "") + '" src="' + esc(url(p.photo)) + '" alt="" loading="lazy">' : '<div class="swc-ph">⚽</div>';
+    if (p.photo) return '<img class="swc-ph ' + (cls || "") + '" src="' + esc(url(p.photo)) + '" alt="" loading="lazy">';
+    var ini = String(p.name || "").split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join("");
+    return '<div class="swc-ph none">' + esc(ini || "⚽") + "</div>";
   }
 
   function viewTeam(id) {
@@ -195,28 +211,44 @@
     this.fixedCat = !!this.cat;
     this.view = el.getAttribute("data-view") || "table";
     this.team = "";
+    this.season = el.getAttribute("data-season") || "";
+    this.fixedSeason = !!this.season;
+    this.ds = null;
     var self = this;
     el.addEventListener("click", function (e) { self.click(e); });
   }
   Widget.prototype.render = function () {
-    var d = DATA, self = this;
+    var self = this;
+    var d = DATA = this.ds || CUR;
     var cats = d.categories.filter(function (c) { return c.matches.length || c.teams.length; });
-    if (!cats.length) { this.el.innerHTML = '<div class="swc"><div class="swc-empty">Дані турніру з’являться незабаром.</div></div>'; return; }
+    if (!cats.length) cats = [{ name: "", matches: [], teams: [], stages: [], scorers: [], empty: true }];
     var c = cats.filter(function (x) { return x.name === self.cat; })[0] || cats[0];
     this.cat = c.name;
-    var h = '<div class="swc"><div class="swc-head"><b>' + esc(d.name) + "</b><small>" + esc([d.season, this.fixedCat ? c.name : ""].filter(Boolean).join(" · ")) + "</small></div>";
+    var h = '<div class="swc"><div class="swc-head"><b>' + esc(d.name) + "</b><small>" + esc([d.season + (d.archive ? " · архів" : ""), this.fixedCat ? c.name : ""].filter(Boolean).join(" · ")) + "</small></div>";
+    if (!this.fixedSeason && SEASONS.length) {
+      var opts = [["", (CUR.season || "Поточний") + " · поточний"]].concat(SEASONS.map(function (x) { return [x.season, x.season]; }));
+      h += '<div class="swc-cats swc-seasons">' + opts.map(function (o) { return '<button data-season="' + esc(o[0]) + '"' + (o[0] === self.season ? ' class="on"' : "") + ">" + esc(o[1]) + "</button>"; }).join("") + "</div>";
+    }
     if (!this.fixedCat && cats.length > 1)
       h += '<div class="swc-cats">' + cats.map(function (x) { return '<button data-cat="' + esc(x.name) + '"' + (x.name === c.name ? ' class="on"' : "") + ">" + esc(x.name) + "</button>"; }).join("") + "</div>";
     h += '<div class="swc-tabs">' + VIEWS.map(function (v) { return '<button data-view="' + v[0] + '"' + (v[0] === self.view && !self.team ? ' class="on"' : "") + ">" + v[1] + "</button>"; }).join("") + "</div>";
-    if (this.team) h += viewTeam(this.team);
+    if (c.empty) h += '<div class="swc-empty">Дані турніру з’являться незабаром.</div>';
+    else if (this.team) h += viewTeam(this.team);
     else h += { table: viewTable, matches: viewMatches, scorers: viewScorers, teams: viewTeams }[this.view](c);
+    if (c.empty) { h = h.replace('<div class="swc-tabs">', '<div class="swc-tabs" style="display:none">'); }
     h += '<div class="swc-foot">' + (d.updated ? "Оновлено: " + esc(d.updated) + ". " : "") + "Дані — система турніру Sokil Winter Cup.</div></div>";
     this.el.innerHTML = h;
   };
   Widget.prototype.click = function (e) {
-    var t = e.target.closest ? e.target.closest("[data-cat],[data-view],[data-team],[data-player],[data-back],.swc-m") : null;
+    var t = e.target.closest ? e.target.closest("[data-season],[data-cat],[data-view],[data-team],[data-player],[data-back],.swc-m") : null;
     if (!t || !this.el.contains(t)) return;
+    DATA = this.ds || CUR;
     if (t.hasAttribute("data-player")) { showPlayer(t.getAttribute("data-player")); e.stopPropagation(); return; }
+    if (t.hasAttribute("data-season")) {
+      var self = this, s = t.getAttribute("data-season");
+      loadSeason(s).then(function (d) { self.season = s; self.ds = s ? d : null; self.team = ""; self.render(); });
+      return;
+    }
     if (t.hasAttribute("data-cat")) { this.cat = t.getAttribute("data-cat"); this.team = ""; }
     else if (t.hasAttribute("data-view")) { this.view = t.getAttribute("data-view"); this.team = ""; }
     else if (t.hasAttribute("data-team")) { this.team = t.getAttribute("data-team"); }
@@ -236,12 +268,14 @@
     if (!els.length) return;
     var ws = els.map(function (el) { el.innerHTML = '<div class="swc"><div class="swc-empty">Завантаження…</div></div>'; return new Widget(el); });
     function draw() { ws.forEach(function (w) { w.render(); }); }
-    load().then(draw).catch(function () {
+    load().then(function () {
+      return Promise.all(ws.map(function (w) { return w.season ? loadSeason(w.season).then(function (d) { w.ds = d === CUR ? null : d; }) : null; }));
+    }).then(draw).catch(function () {
       els.forEach(function (el) { el.innerHTML = '<div class="swc"><div class="swc-empty">Не вдалося завантажити дані турніру. Спробуйте оновити сторінку.</div></div>'; });
     });
     setInterval(function () {  // оновлення раз на 2 хвилини, якщо відкрито не картку гравця
       if (document.querySelector(".swc-modal")) return;
-      load(true).then(function () { ws.forEach(function (w) { if (!w.el.querySelector(".swc-m.open")) w.render(); }); }).catch(function () {});
+      load(true).then(function () { ws.forEach(function (w) { if (!w.ds && !w.el.querySelector(".swc-m.open")) w.render(); }); }).catch(function () {});
     }, 120000);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
