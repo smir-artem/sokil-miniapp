@@ -56,7 +56,7 @@
     ".swc-card{background:#fff;border-radius:12px;max-width:340px;width:100%;overflow:hidden;position:relative}",
     ".swc-card .swc-ph{aspect-ratio:1/1}.swc-card .b{padding:12px 14px;border-top:4px solid var(--y)}",
     ".swc-card .x{position:absolute;top:6px;right:8px;border:0;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:30px;height:30px}",
-    ".swc-empty{color:var(--m);padding:16px 0}.swc-foot{font-size:12px;color:var(--m);padding:10px 0}",
+    ".swc-note{font-size:12px;color:var(--m);margin:-4px 0 10px}.swc-empty{color:var(--m);padding:16px 0}.swc-foot{font-size:12px;color:var(--m);padding:10px 0}",
     "@media(max-width:560px){.swc{font-size:14px}.swc .hide-s{display:none}.swc-m .s{min-width:56px;font-size:15px}.swc-tabs button{padding:8px 10px}}"
   ].join("\n");
 
@@ -115,11 +115,12 @@
       var rows = s.table.map(function (r) {
         return "<tr><td>" + r.pos + '</td><td class="l">' + tname(r.team, true) + "</td><td>" + r.p + '</td><td class="hide-s">' + r.w +
           '</td><td class="hide-s">' + r.d + '</td><td class="hide-s">' + r.l + '</td><td class="m">' + r.gf + "–" + r.ga + '</td><td class="hide-s">' +
-          (r.gd > 0 ? "+" : "") + r.gd + '</td><td class="pts">' + r.pts + "</td></tr>";
+          (r.gd > 0 ? "+" : "") + r.gd + '</td><td class="pts">' + r.pts + (r.adj ? "*" : "") + "</td></tr>";
       }).join("");
+      var note = s.note ? '<div class="swc-note">* ' + esc(s.note) + "</div>" : "";
       return (s.name || st.length > 1 ? "<h3>" + esc(s.name || "Таблиця") + "</h3>" : "") +
         '<table class="st"><tr><th>#</th><th class="l">Команда</th><th title="Ігри">І</th><th class="hide-s" title="Виграші">В</th><th class="hide-s" title="Нічиї">Н</th>' +
-        '<th class="hide-s" title="Поразки">П</th><th class="m" title="Голи">М</th><th class="hide-s" title="Різниця">±</th><th title="Очки">О</th></tr>' + rows + "</table>";
+        '<th class="hide-s" title="Поразки">П</th><th class="m" title="Голи">М</th><th class="hide-s" title="Різниця">±</th><th title="Очки">О</th></tr>' + rows + "</table>" + note;
     }).join("");
   }
 
