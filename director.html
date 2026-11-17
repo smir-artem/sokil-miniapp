@@ -856,9 +856,69 @@ async function liveCard(rid) {
 }
 function liveFiles(fs) {
   if (!fs || !fs.length) return "";
-  return `<div class="files">${fs.map((f, i) => `<div class="file" data-lf="${i}">${f.img ? `<img src="${esc(f.url)}" alt="">` : `<div style="font-size:34px;padding:18px 0">📄</div>`}<div>📎 ${esc(f.n)}</div></div>`).join("")}</div>`;
+  // 2.33.2: фото — мініатюра (відкривається на весь екран), відео й голосові — програвач прямо в картці, решта — відкрити
+  return `<div class="files">${fs.map((f, i) => f.media === "video" ? `<div class="file" style="cursor:default"><video src="${esc(f.url)}" controls preload="metadata" style="width:100%;max-height:260px;background:#000"></video><div>🎬 ${esc(f.n)}</div></div>`
+    : f.media === "audio" ? `<div class="file" style="cursor:default"><audio src="${esc(f.url)}" controls preload="none" style="width:100%"></audio><div>🎙 ${esc(f.n)}</div></div>`
+    : `<div class="file" data-lf="${i}">${f.img ? `<img src="${esc(f.url)}" alt="">` : `<div style="font-size:34px;padding:18px 0">📄</div>`}<div>📎 ${esc(f.n)}</div></div>`).join("")}</div>`;
+}
+async function callForm(m, fd) {
+  const tg = window.Telegram && Telegram.WebApp;
+  try {
+    const r = await fetch("api/" + m, {method: "POST", headers: {"X-Init-Data": (tg && tg.initData) || ""}, body: fd});
+    const j = await r.json().catch(() => ({error: "Немає відповіді від Сокіл Цифровий"}));
+    if (!r.ok || j.error) { toast("⚠️ " + (j.error || ("Помилка " + r.status))); return null; }
+    return j;
+  } catch (e) { toast("⚠️ Немає зв'язку з Сокіл Цифровий"); return null; }
+}
+// 2.33.2: відповідь з файлами (вибрати, перетягнути або вставити Ctrl+V), як у Telegram
+function replyModal(x, done) {
+  const files = [];
+  modal(`<h3>Відповідь: ${esc(x.from)}</h3><div class="muted small">Текст і файли (фото, відео, голосові, документи) підуть автору в Сокіл Цифровий і запишуться в картку.</div>
+    <textarea id="mt" placeholder="Текст відповіді (Ctrl+V — вставити текст або скріншот)"></textarea>
+    <div class="actions" style="margin-top:6px"><label class="btn">📎 Додати файли<input id="mf" type="file" multiple style="display:none"></label>
+      <button class="btn" id="mpaste">📋 Вставити з буфера</button></div>
+    <div id="ml" class="small"></div>
+    <div class="actions"><button class="btn p" id="ok">Надіслати</button><button class="btn" id="no">Скасувати</button></div>`,
+    (m, close) => {
+      const ta = m.querySelector("#mt"), list = m.querySelector("#ml");
+      const show = () => { list.innerHTML = files.map((f, i) => `<div style="margin:4px 0">📎 ${esc(f.name)} <span class="muted">(${Math.ceil(f.size / 1024)} КБ)</span> <a href="#" data-rm="${i}">✖</a></div>`).join("");
+        list.querySelectorAll("[data-rm]").forEach(a => a.onclick = e => { e.preventDefault(); files.splice(+a.dataset.rm, 1); show(); }); };
+      const add = fl => { for (const f of fl) if (f) files.push(f.name ? f : new File([f], "скріншот.png", {type: f.type || "image/png"})); show(); };
+      const insertText = t => { const s0 = ta.selectionStart || 0, s1 = ta.selectionEnd || 0; ta.value = ta.value.slice(0, s0) + t + ta.value.slice(s1); ta.selectionStart = ta.selectionEnd = s0 + t.length; };
+      m.querySelector("#mf").onchange = e => { add(e.target.files); e.target.value = ""; };
+      // Ctrl+V: у вбудованому браузері Telegram вставлення часом не спрацьовує саме — обробляємо вручну
+      m.addEventListener("paste", e => {
+        const cd = e.clipboardData; if (!cd) return;
+        const fl = [...(cd.files || [])]; if (fl.length) { e.preventDefault(); add(fl); return; }
+        const t = cd.getData("text"); if (t && document.activeElement === ta) { e.preventDefault(); insertText(t); }
+      });
+      m.addEventListener("dragover", e => e.preventDefault());
+      m.addEventListener("drop", e => { e.preventDefault(); add([...(e.dataTransfer.files || [])]); });
+      m.querySelector("#mpaste").onclick = async () => {
+        try {
+          if (navigator.clipboard && navigator.clipboard.read) {
+            for (const it of await navigator.clipboard.read()) {
+              const img = it.types.find(t => t.startsWith("image/"));
+              if (img) add([await it.getType(img)]);
+              else if (it.types.includes("text/plain")) insertText(await (await it.getType("text/plain")).text());
+            }
+          } else insertText(await navigator.clipboard.readText());
+        } catch (e) { toast("Буфер обміну недоступний у цьому вікні — скористайтеся «📎 Додати файли» або правою кнопкою → Вставити"); }
+        ta.focus();
+      };
+      ta.focus();
+      m.querySelector("#no").onclick = close;
+      m.querySelector("#ok").onclick = async () => {
+        const t = ta.value.trim(); if (!t && !files.length) return toast("Напишіть текст або додайте файл");
+        const fd = new FormData(); fd.append("rid", String(x.rid)); fd.append("text", t); files.forEach(f => fd.append("file", f, f.name));
+        m.querySelector("#ok").disabled = true; m.querySelector("#ok").textContent = "Надсилаю…";
+        const r = await callForm("reply", fd);
+        if (r) { close(); done(r); } else { m.querySelector("#ok").disabled = false; m.querySelector("#ok").textContent = "Надіслати"; }
+      };
+    });
 }
 if (LIVE) {
+  document.querySelectorAll(".demo-flag").forEach(el => el.style.display = "none");  // 2.33.2: справжні дані — без «ДЕМО»
   const LT = [["new","🆕 Нові"],["work","⏳ В роботі"],["late","⌛ Прострочені"],["closed","🏁 Закриті"]];
   counts = () => ({inbox: (L.counts.new || 0) + (L.counts.work || 0), late: L.counts.late || 0, appeals: 0, newcomers: 0});
   VIEWS.inbox = c => {
@@ -893,10 +953,7 @@ if (LIVE) {
       c.querySelectorAll("[data-press]").forEach(b => b.onclick = async () => {
         const data = b.dataset.press, label = b.dataset.label;
         if (data.startsWith("ib:r:")) {
-          return askText("Відповідь: " + x.from, "Текст піде автору в Сокіл Цифровий і запишеться в картку", async t => {
-            if (!t) return; const r = await call("reply", {rid: x.rid, text: t});
-            if (r) { toast("✅ Відповідь надіслано"); L.card = r.card; L.items = null; render(); }
-          });
+          return replyModal(x, r => { toast("✅ Відповідь надіслано"); L.card = r.card; L.items = null; render(); });
         }
         b.disabled = true;
         const r = await call("press", {rid: x.rid, data, label});
