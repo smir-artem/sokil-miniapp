@@ -237,7 +237,7 @@
     else if (this.team) h += viewTeam(this.team);
     else h += { table: viewTable, matches: viewMatches, scorers: viewScorers, teams: viewTeams }[this.view](c);
     if (c.empty) { h = h.replace('<div class="swc-tabs">', '<div class="swc-tabs" style="display:none">'); }
-    h += '<div class="swc-foot">' + (d.updated ? "Оновлено: " + esc(d.updated) + ". " : "") + "Дані — система турніру Sokil Winter Cup.</div></div>";
+    h += '<div class="swc-foot">' + (d.updated ? "Останні зміни: " + esc(d.updated) + ". " : "") + "Дані — система турніру Sokil Winter Cup.</div></div>";
     this.el.innerHTML = h;
   };
   Widget.prototype.click = function (e) {
