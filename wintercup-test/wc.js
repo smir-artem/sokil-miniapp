@@ -21,7 +21,7 @@
     ".swc-head b{color:var(--y);font-size:20px;display:block}.swc-head small{color:#bbb}",
     ".swc-cats,.swc-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 0}",
     ".swc-cats button{border:1px solid var(--k);background:#fff;color:var(--k);border-radius:18px;padding:5px 12px}",
-    ".swc-cats button.on{background:var(--k);color:var(--y)}.swc-seasons{padding-bottom:0}.swc-seasons button{border-radius:6px;font-size:13px;padding:4px 10px}",
+    ".swc-cats button.on{background:var(--k);color:var(--y)}.swc-seasons{padding-bottom:0}.swc-phases{padding:0 0 10px}.swc-phases button{border-color:#bbb;font-size:13px;padding:4px 10px}.swc-phases button.on{background:var(--y);color:var(--k);border-color:var(--y)}.swc-seasons button{border-radius:6px;font-size:13px;padding:4px 10px}",
     ".swc-tabs{border-bottom:2px solid var(--k);padding-bottom:0;flex-wrap:nowrap;overflow-x:auto;gap:4px}",
     ".swc-tabs button{border:0;background:var(--g);color:var(--k);padding:8px 14px;border-radius:8px 8px 0 0;white-space:nowrap}",
     ".swc-tabs button.on{background:var(--k);color:var(--y);font-weight:600}",
@@ -78,6 +78,19 @@
     var d = new Date(iso + "T12:00:00");
     return DAYS[d.getDay()] + ", " + d.getDate() + " " + MONTHS[d.getMonth()];
   }
+  function phaseOf(stage) {
+    stage = String(stage || "");
+    if (/товариськ/i.test(stage)) return "Товариські матчі";
+    var p = stage.split(" · ")[0].replace(/\s*(груповий етап|плей[- ]?офф)\s*$/i, "").trim();
+    return p || "";
+  }
+  function phases(c) {
+    var out = [];
+    (c.stages || []).forEach(function (s) { var p = phaseOf(s.name); if (p && out.indexOf(p) < 0) out.push(p); });
+    c.matches.forEach(function (m) { var p = phaseOf(m.stage); if (p && out.indexOf(p) < 0) out.push(p); });
+    return out.length > 1 ? out : [];
+  }
+  function inPhase(stage, ph) { return !ph || phaseOf(stage) === ph; }
   function findPlayer(pid) {
     for (var k in DATA.teams) {
       var ps = DATA.teams[k].players || [];
@@ -108,8 +121,8 @@
   }
 
   // ───────────── розділи ─────────────
-  function viewTable(c) {
-    var st = (c.stages || []).filter(function (s) { return s.kind === "table"; });
+  function viewTable(c, ph) {
+    var st = (c.stages || []).filter(function (s) { return s.kind === "table" && inPhase(s.name, ph); });
     if (!st.length) return '<div class="swc-empty">Таблиця з’явиться після перших матчів.</div>';
     return st.map(function (s) {
       var rows = s.table.map(function (r) {
@@ -148,10 +161,11 @@
       "</div><div>" + logo(team(m.away)) + esc(team(m.away).name) + "</div>" + (meta.length ? '<div class="swc-meta">' + meta.join(" · ") + "</div>" : "") + ev + "</div>";
   }
 
-  function viewMatches(c) {
-    if (!c.matches.length) return '<div class="swc-empty">Розклад матчів ще не опубліковано.</div>';
+  function viewMatches(c, ph) {
+    var ms = c.matches.filter(function (m) { return inPhase(m.stage, ph); });
+    if (!ms.length) return '<div class="swc-empty">Розклад матчів ще не опубліковано.</div>';
     var out = "", last = null;
-    c.matches.forEach(function (m) {
+    ms.forEach(function (m) {
       if (m.date !== last) { out += '<div class="swc-day">' + dayTitle(m.date) + "</div>"; last = m.date; }
       out += matchRow(m);
     });
@@ -212,6 +226,7 @@
     this.fixedCat = !!this.cat;
     this.view = el.getAttribute("data-view") || "table";
     this.team = "";
+    this.phase = "";
     this.season = el.getAttribute("data-season") || "";
     this.fixedSeason = !!this.season;
     this.ds = null;
@@ -232,25 +247,31 @@
     }
     if (!this.fixedCat && cats.length > 1)
       h += '<div class="swc-cats">' + cats.map(function (x) { return '<button data-cat="' + esc(x.name) + '"' + (x.name === c.name ? ' class="on"' : "") + ">" + esc(x.name) + "</button>"; }).join("") + "</div>";
+    var phs = phases(c);
+    if (phs.indexOf(this.phase) < 0) this.phase = "";
+    if (phs.length && !this.team && (this.view === "table" || this.view === "matches"))
+      h += '<div class="swc-cats swc-phases">' + [["", "Усі етапи"]].concat(phs.map(function (p) { return [p, p]; })).map(function (o) {
+        return '<button data-phase="' + esc(o[0]) + '"' + (o[0] === self.phase ? ' class="on"' : "") + ">" + esc(o[1]) + "</button>"; }).join("") + "</div>";
     h += '<div class="swc-tabs">' + VIEWS.map(function (v) { return '<button data-view="' + v[0] + '"' + (v[0] === self.view && !self.team ? ' class="on"' : "") + ">" + v[1] + "</button>"; }).join("") + "</div>";
     if (c.empty) h += '<div class="swc-empty">Дані турніру з’являться незабаром.</div>';
     else if (this.team) h += viewTeam(this.team);
-    else h += { table: viewTable, matches: viewMatches, scorers: viewScorers, teams: viewTeams }[this.view](c);
+    else h += { table: viewTable, matches: viewMatches, scorers: viewScorers, teams: viewTeams }[this.view](c, this.phase);
     if (c.empty) { h = h.replace('<div class="swc-tabs">', '<div class="swc-tabs" style="display:none">'); }
     h += '<div class="swc-foot">' + (d.updated ? "Останні зміни: " + esc(d.updated) + ". " : "") + "Дані — система турніру Sokil Winter Cup.</div></div>";
     this.el.innerHTML = h;
   };
   Widget.prototype.click = function (e) {
-    var t = e.target.closest ? e.target.closest("[data-season],[data-cat],[data-view],[data-team],[data-player],[data-back],.swc-m") : null;
+    var t = e.target.closest ? e.target.closest("[data-season],[data-phase],[data-cat],[data-view],[data-team],[data-player],[data-back],.swc-m") : null;
     if (!t || !this.el.contains(t)) return;
     DATA = this.ds || CUR;
     if (t.hasAttribute("data-player")) { showPlayer(t.getAttribute("data-player")); e.stopPropagation(); return; }
     if (t.hasAttribute("data-season")) {
       var self = this, s = t.getAttribute("data-season");
-      loadSeason(s).then(function (d) { self.season = s; self.ds = s ? d : null; self.team = ""; self.render(); });
+      loadSeason(s).then(function (d) { self.season = s; self.ds = s ? d : null; self.team = ""; self.phase = ""; self.render(); });
       return;
     }
-    if (t.hasAttribute("data-cat")) { this.cat = t.getAttribute("data-cat"); this.team = ""; }
+    if (t.hasAttribute("data-phase")) { this.phase = t.getAttribute("data-phase"); }
+    else if (t.hasAttribute("data-cat")) { this.cat = t.getAttribute("data-cat"); this.team = ""; this.phase = ""; }
     else if (t.hasAttribute("data-view")) { this.view = t.getAttribute("data-view"); this.team = ""; }
     else if (t.hasAttribute("data-team")) { this.team = t.getAttribute("data-team"); }
     else if (t.hasAttribute("data-back")) { this.team = ""; }
