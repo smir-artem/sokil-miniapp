@@ -56,7 +56,7 @@
     ".swc-card{background:#fff;border-radius:12px;max-width:340px;width:100%;overflow:hidden;position:relative}",
     ".swc-card .swc-ph{aspect-ratio:1/1}.swc-card .b{padding:12px 14px;border-top:4px solid var(--y)}",
     ".swc-card .x{position:absolute;top:6px;right:8px;border:0;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:30px;height:30px}",
-    ".swc-round{font-size:13px;font-weight:600;color:var(--m);margin:10px 0 2px;text-transform:uppercase;letter-spacing:.3px}.swc-note{font-size:12px;color:var(--m);margin:-4px 0 10px}.swc-empty{color:var(--m);padding:16px 0}.swc-foot{font-size:12px;color:var(--m);padding:10px 0}",
+    ".swc-when{font-weight:400;color:var(--m);font-size:13px;margin-left:6px}.swc-fest{background:#fff8c4;border-radius:8px;padding:8px 12px;margin:10px 0;font-size:14px}.swc-round{font-size:13px;font-weight:600;color:var(--m);margin:10px 0 2px;text-transform:uppercase;letter-spacing:.3px}.swc-note{font-size:12px;color:var(--m);margin:-4px 0 10px}.swc-empty{color:var(--m);padding:16px 0}.swc-foot{font-size:12px;color:var(--m);padding:10px 0}",
     "@media(max-width:560px){.swc{font-size:14px}.swc .hide-s{display:none}.swc-m .s{min-width:56px;font-size:15px}.swc-tabs button{padding:8px 10px}}"
   ].join("\n");
 
@@ -93,6 +93,13 @@
     return out.length > 1 ? out : [];
   }
   function inPhase(stage, ph) { return !ph || phaseOf(stage) === ph; }
+  function shortDay(iso) {
+    var d = new Date(iso + "T12:00:00");
+    return d.getDate() + " " + MONTHS[d.getMonth()];
+  }
+  function isFest(catName) {
+    return (DATA.categories || []).some(function (c) { return c.name === catName && c.festival; });
+  }
   function findPlayer(pid) {
     for (var k in DATA.teams) {
       var ps = DATA.teams[k].players || [];
@@ -156,19 +163,20 @@
       by[r].push(m);
     });
     return "<h3>" + esc(s.name) + "</h3>" + rounds.map(function (r) {
-      return (r ? '<div class="swc-round">' + esc(r) + "</div>" : "") + by[r].map(function (m) { return matchRow(m, true); }).join("");
+      return (r ? '<div class="swc-round">' + esc(r) + "</div>" : "") + by[r].map(function (m) { return matchRow(m, "round"); }).join("");
     }).join("");
   }
 
-  function matchRow(m, inRound) {
+  function matchRow(m, mode) {  // mode: "" — за датами; "round" — у раунді плей-офф; "tour" — у турі
+    var inRound = mode === "round";
     var s, cls = "s";
     if (m.status === "played") s = esc(m.score) + (m.pens ? '<div style="font-size:11px;font-weight:400">пен. ' + esc(m.pens) + "</div>" : "");
     else if (m.status === "live") { s = "триває"; cls += " live"; }
     else { s = esc(m.time || "—"); cls += " t"; }
     var meta = [];
     if (m.stage && !inRound) meta.push(esc(m.stage));
-    if (inRound && m.date) meta.push(esc(dayTitle(m.date)));
-    if (m.status === "played" && m.time) meta.push(esc(m.time));
+    if (mode && m.date) meta.push(esc(dayTitle(m.date)) + (m.time && (mode === "tour" || mode === "round") ? ", " + esc(m.time) : ""));
+    if (m.status === "played" && m.time && !mode) meta.push(esc(m.time));
     if (m.status === "played" && !m.approved) meta.push('<span class="swc-badge">протокол на погодженні</span>');
     if (m.tech) meta.push(esc(m.tech));
     var ev = "";
@@ -188,12 +196,31 @@
   function viewMatches(c, ph) {
     var ms = c.matches.filter(function (m) { return inPhase(m.stage, ph); });
     if (!ms.length) return '<div class="swc-empty">Розклад матчів ще не опубліковано.</div>';
-    var out = "", last = null;
+    var cups = (c.stages || []).filter(function (s) { return s.kind === "cup"; }).map(function (s) { return s.name; });
+    var hasTours = ms.some(function (m) { return m.tour != null; });
+    if (!hasTours) {
+      var out = "", last = null;
+      ms.forEach(function (m) {
+        if (m.date !== last) { out += '<div class="swc-day">' + dayTitle(m.date) + "</div>"; last = m.date; }
+        out += matchRow(m);
+      });
+      return out;
+    }
+    var keys = [], by = {};
     ms.forEach(function (m) {
-      if (m.date !== last) { out += '<div class="swc-day">' + dayTitle(m.date) + "</div>"; last = m.date; }
-      out += matchRow(m);
+      var cup = cups.some(function (n) { return m.stage === n || m.stage.indexOf(n + " · ") === 0; });
+      var k = m.tour != null ? "t" + m.tour : cup ? "s" + m.stage : "d" + m.date;
+      if (!by[k]) { by[k] = []; keys.push(k); }
+      by[k].push(m);
     });
-    return out;
+    return keys.map(function (k) {
+      var list = by[k], dates = list.map(function (m) { return m.date; }).filter(Boolean).sort();
+      var d1 = dates[0], d2 = dates[dates.length - 1];
+      var when = !d1 ? "" : d1 === d2 ? shortDay(d1) : d1.slice(0, 7) === d2.slice(0, 7) ? +d1.slice(8) + "–" + shortDay(d2) : shortDay(d1) + " – " + shortDay(d2);
+      var title = k[0] === "t" ? list[0].tour + " тур" : k[0] === "s" ? list[0].stage : dayTitle(list[0].date);
+      return '<div class="swc-day">' + esc(title) + (k[0] !== "d" && when ? ' <span class="swc-when">' + esc(when) + "</span>" : "") + "</div>" +
+        list.map(function (m) { return matchRow(m, k[0] === "d" ? "" : "tour"); }).join("");
+    }).join("");
   }
 
   function viewScorers(c) {
@@ -223,11 +250,11 @@
 
   function viewTeam(id) {
     var t = team(id);
-    var ps = t.players || [];
+    var ps = t.players || [], fest = isFest(t.category);
     return '<button class="swc-back" data-back="1">← Назад</button><h3>' + logo(t) + esc(t.name) + (t.club && t.club !== t.name ? " · " + esc(t.club) : "") + "</h3>" +
       (ps.length ? '<div class="swc-pl">' + ps.map(function (p) {
         return '<div class="swc-p" data-player="' + esc(p.id) + '">' + photo(p) + '<div class="n">' + (p.num !== "" ? '<span class="swc-num">' + esc(p.num) + "</span>" : "") +
-          esc(p.name) + '</div><div class="d">' + esc(p.dob) + (p.games ? " · ігор " + p.games : "") + (p.goals ? " · ⚽ " + p.goals : "") + "</div></div>";
+          esc(p.name) + '</div><div class="d">' + esc(p.dob) + (p.games ? " · ігор " + p.games : "") + (p.goals && !fest ? " · ⚽ " + p.goals : "") + "</div></div>";
       }).join("") + "</div>" : '<div class="swc-empty">Склад ще не подано.</div>');
   }
 
@@ -238,7 +265,7 @@
     box.className = "swc swc-modal";
     box.innerHTML = '<div class="swc-card"><button class="x" aria-label="Закрити">✕</button>' + photo(p) + '<div class="b"><b style="font-size:17px">' +
       (p.num !== "" ? '<span class="swc-num">' + esc(p.num) + "</span>" : "") + esc(p.name) + "</b><div>" + logo(f.t) + esc(f.t.name) + "</div>" +
-      (p.dob ? "<div>Дата народження: " + esc(p.dob) + "</div>" : "") + "<div>Ігор: " + (p.games || 0) + " · Голів: " + (p.goals || 0) + "</div></div></div>";
+      (p.dob ? "<div>Дата народження: " + esc(p.dob) + "</div>" : "") + "<div>Ігор: " + (p.games || 0) + (isFest(f.t.category) ? "" : " · Голів: " + (p.goals || 0)) + "</div></div></div>";
     box.addEventListener("click", function (e) { if (e.target === box || e.target.className === "x") box.remove(); });
     document.body.appendChild(box);
   }
@@ -276,8 +303,12 @@
     if (phs.length && !this.team && (this.view === "table" || this.view === "matches"))
       h += '<div class="swc-cats swc-phases">' + [["", "Усі етапи"]].concat(phs.map(function (p) { return [p, p]; })).map(function (o) {
         return '<button data-phase="' + esc(o[0]) + '"' + (o[0] === self.phase ? ' class="on"' : "") + ">" + esc(o[1]) + "</button>"; }).join("") + "</div>";
-    h += '<div class="swc-tabs">' + VIEWS.map(function (v) { return '<button data-view="' + v[0] + '"' + (v[0] === self.view && !self.team ? ' class="on"' : "") + ">" + v[1] + "</button>"; }).join("") + "</div>";
+    var views = c.festival ? VIEWS.filter(function (v) { return v[0] !== "scorers"; }) : VIEWS;
+    if (c.festival && this.view === "scorers") this.view = "table";
+    h += '<div class="swc-tabs">' + views.map(function (v) { return '<button data-view="' + v[0] + '"' + (v[0] === self.view && !self.team ? ' class="on"' : "") + ">" + v[1] + "</button>"; }).join("") + "</div>";
     if (c.empty) h += '<div class="swc-empty">Дані турніру з’являться незабаром.</div>';
+    else if (c.festival && this.view === "table" && !this.team)
+      h += '<div class="swc-fest">🎪 Фестивальний формат: команди грають без турнірної таблиці й бомбардирів.</div>' + viewMatches(c, this.phase);
     else if (this.team) h += viewTeam(this.team);
     else h += { table: viewTable, matches: viewMatches, scorers: viewScorers, teams: viewTeams }[this.view](c, this.phase);
     if (c.empty) { h = h.replace('<div class="swc-tabs">', '<div class="swc-tabs" style="display:none">'); }
