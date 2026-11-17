@@ -5,123 +5,132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Відвідування · СФК «Сокіл»</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,900&display=swap" rel="stylesheet">
 <style>
+  /* 2.34.0: клубні кольори (як робочий стіл директора) — жовтий #FFEC02, чорний, білий; Montserrat.
+     Тема — з Telegram (tg.colorScheme): темна (типово) / світла. Шапка завжди чорна. */
   :root {
-    --bg: var(--tg-theme-bg-color, #ffffff);
-    --bg2: var(--tg-theme-secondary-bg-color, #f2f2f6);
-    --text: var(--tg-theme-text-color, #111111);
-    --hint: var(--tg-theme-hint-color, #8a8a8e);
-    --accent: var(--tg-theme-button-color, #2481cc);
-    --accent-text: var(--tg-theme-button-text-color, #ffffff);
-    --ok: #34a853;
-    --bad: #e5534b;
-    --wait: #e3a008;
-    --line: rgba(127, 127, 127, .16);
+    --y: #FFEC02; --on-y: #0A0A0A;
+    --bg2: #0A0A0A; --bg: #161616; --field: #1D1D1D; --line: #262626;
+    --text: #FFFFFF; --hint: #A8A8A8;
+    --ok: #5BE49B; --bad: #FF8A80; --wait: #FFEC02;
+    color-scheme: dark;
+  }
+  html.light {
+    --bg2: #F4F4F1; --bg: #FFFFFF; --field: #F7F7F4; --line: #E3E3DE;
+    --text: #0A0A0A; --hint: #5F5F5A;
+    --ok: #1E9E52; --bad: #D93025; --wait: #E6C200;
+    color-scheme: light;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
   body {
     background: var(--bg2); color: var(--text);
-    font: 15px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    padding-bottom: 88px;
+    font: 15px/1.35 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; padding-bottom: 92px;
   }
+  button { font-family: inherit; }
   header {
-    position: sticky; top: 0; z-index: 2; background: var(--bg2);
-    padding: 10px 16px 8px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 2; background: #000; color: #fff;
+    padding: 12px 16px 10px; border-bottom: 1px solid #1a1a1a;
   }
-  h1 { font-size: 17px; margin: 0; font-weight: 600; }
-  .sub { color: var(--hint); font-size: 13px; margin-top: 1px; }
+  h1 { font-size: 20px; margin: 0; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: .2px;
+       line-height: 1.1; }
+  .stripe { width: 48px; height: 4px; background: var(--y); margin: 6px 0 4px; }
+  .sub { color: #A8A8A8; font-size: 13px; margin-top: 2px; }
   .bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-  .count { flex: 1; font-size: 13px; color: var(--hint); display: flex; gap: 12px; }
+  .count { flex: 1; font-size: 13px; color: #A8A8A8; display: flex; gap: 12px; }
   .count span { display: inline-flex; align-items: center; gap: 5px; }
-  .count b { color: var(--text); font-weight: 600; }
+  .count b { color: #fff; font-weight: 700; }
   button.all {
-    border: 0; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600;
-    background: var(--bg); color: var(--accent);
+    border: 0; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800;
+    background: var(--y); color: var(--on-y); text-transform: uppercase; letter-spacing: .2px;
   }
-  ul { list-style: none; margin: 10px 12px 0; padding: 0; background: var(--bg); border-radius: 12px; overflow: hidden; }
+  ul { list-style: none; margin: 10px 12px 0; padding: 0; background: var(--bg); border-radius: 14px; overflow: hidden;
+       border: 1px solid var(--line); }
   li { border-top: 1px solid var(--line); }
   li:first-child { border-top: 0; }
-  li.sep { border-top: 0; padding: 14px 14px 4px; font-size: 12px; color: var(--hint); background: var(--bg2);
-           text-transform: uppercase; letter-spacing: .03em; }
-  .row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; min-height: 46px; cursor: pointer; user-select: none; }
+  li.sep { border-top: 0; padding: 14px 14px 4px; font-size: 11.5px; color: var(--hint); background: var(--bg2);
+           text-transform: uppercase; letter-spacing: .4px; font-weight: 700; }
+  .row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; min-height: 48px; cursor: pointer; user-select: none; }
   .num { width: 18px; color: var(--hint); font-size: 12px; text-align: right; flex: none; }
-  .name { flex: 1; }
-  .hint { display: block; color: var(--hint); font-size: 12px; }
-  .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--wait); }
-  .state { flex: none; font-size: 12px; color: var(--hint); min-width: 58px; text-align: right; }
+  .name { flex: 1; font-weight: 500; }
+  .hint { display: block; color: var(--hint); font-size: 12px; font-weight: 500; margin-top: 1px; }
+  .dot { flex: none; width: 11px; height: 11px; border-radius: 50%; background: var(--wait); display: inline-block; }
+  .state { flex: none; font-size: 12px; color: var(--hint); min-width: 62px; text-align: right; font-weight: 600; }
   li.ok .dot { background: var(--ok); }
   li.absent .dot { background: var(--bad); }
   li.absent .name { color: var(--bad); }
   li.ok .state { color: var(--ok); }
   li.absent .state { color: var(--bad); }
-  li.wait .state { color: var(--wait); }
-  .reasons { display: none; gap: 6px; padding: 0 14px 10px 42px; flex-wrap: wrap; }
-  li.absent .reasons { display: flex; }
-  .reasons button {
-    border: 1px solid var(--line); background: transparent; color: var(--hint);
-    border-radius: 14px; padding: 3px 10px; font-size: 12px;
-  }
-  .reasons button.on { border-color: var(--bad); color: var(--bad); }
-  .note { margin: 12px; background: var(--bg); border-radius: 12px; padding: 10px 14px; }
-  .note label { display: block; color: var(--hint); font-size: 12px; margin-bottom: 6px; }
+  li.wait .state { color: var(--hint); }
+  .note { margin: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+  .note label { display: block; color: var(--hint); font-size: 12px; margin-bottom: 6px; font-weight: 600; }
   .note textarea {
-    width: 100%; min-height: 56px; border: 1px solid var(--line); border-radius: 8px; padding: 8px;
-    font: inherit; color: var(--text); background: var(--bg2); resize: vertical;
+    width: 100%; min-height: 56px; border: 1px solid var(--line); border-radius: 10px; padding: 8px;
+    font: inherit; color: var(--text); background: var(--field); resize: vertical;
   }
-  .err { margin: 24px 16px; padding: 16px; background: var(--bg); border-radius: 12px; }
+  .err { margin: 24px 16px; padding: 16px; background: var(--bg); border-radius: 14px; }
   footer { color: var(--hint); font-size: 12px; padding: 4px 16px 12px; }
   #save {
-    position: fixed; left: 12px; right: 12px; bottom: 12px; border: 0; border-radius: 12px;
-    padding: 14px; font-size: 15px; font-weight: 600; background: var(--accent); color: var(--accent-text);
-    display: none;
+    position: fixed; left: 12px; right: 12px; bottom: 12px; border: 0; border-radius: 14px; z-index: 3;
+    padding: 15px 14px; font-size: 15px; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: .3px;
+    background: var(--y); color: var(--on-y); display: none; box-shadow: 0 4px 16px rgba(0, 0, 0, .35);
   }
   #save.off { opacity: .55; }
-  .guests { margin: 12px; background: var(--bg); border-radius: 12px; padding: 10px 14px; }
-  .guests h2 { font-size: 13px; color: var(--hint); font-weight: 600; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .03em; }
+  .guests { margin: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+  .guests h2 { font-size: 13px; color: var(--text); font-weight: 900; font-style: italic; margin: 0 0 6px;
+               text-transform: uppercase; letter-spacing: .2px; }
   .guests .g { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
   .guests .g:first-of-type { border-top: 0; }
-  .guests .g .tag { font-size: 11px; border-radius: 10px; padding: 1px 8px; background: var(--bg2); color: var(--hint); }
+  .guests .g .tag { font-size: 11px; border-radius: 10px; padding: 1px 8px; background: var(--field); color: var(--hint);
+                    font-weight: 600; }
   .guests .g .x { border: 0; background: transparent; color: var(--bad); font-size: 18px; padding: 0 4px; }
   .guests .empty { color: var(--hint); font-size: 13px; padding: 2px 0 6px; }
-  .guests h3 { font-size: 12px; color: var(--hint); font-weight: 600; margin: 4px 0 2px; }
-  .pt { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-top: 1px solid var(--line); }
+  .guests h3 { font-size: 12px; color: var(--hint); font-weight: 700; margin: 4px 0 2px; text-transform: uppercase;
+               letter-spacing: .3px; }
+  .pt { display: flex; align-items: center; gap: 6px; padding: 7px 0; border-top: 1px solid var(--line); }
   .pt:first-of-type { border-top: 0; }
   .pt .name { flex: 1; }
-  .pt .warn { display: block; font-size: 11px; color: var(--hint); }
-  .pt button { border: 1px solid var(--line); background: transparent; color: var(--hint); border-radius: 14px; padding: 4px 10px; font-size: 13px; }
-  .pt button.yes.on { border-color: var(--ok); color: var(--ok); font-weight: 600; }
-  .pt button.no.on { border-color: var(--bad); color: var(--bad); font-weight: 600; }
-  #ptbox { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .pt .warn { display: block; font-size: 11px; color: var(--hint); font-weight: 500; }
+  .pt button { border: 1px solid var(--line); background: transparent; color: var(--hint); border-radius: 20px;
+               padding: 5px 11px; font-size: 13px; font-weight: 700; }
+  .pt button.yes.on { background: var(--y); border-color: var(--y); color: var(--on-y); }
+  .pt button.no.on { border-color: var(--bad); color: var(--bad); }
+  #ptbox, #pabox { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
   .gbtns { display: flex; gap: 8px; margin-top: 8px; }
   .gbtns button, .panel .btn {
-    flex: 1; border: 1px solid var(--accent); background: transparent; color: var(--accent);
-    border-radius: 10px; padding: 9px 6px; font-size: 14px; font-weight: 600;
+    flex: 1; border: 1.5px solid currentColor; background: transparent; color: var(--text);
+    border-radius: 22px; padding: 9px 8px; font-size: 13.5px; font-weight: 700;
   }
   .panel { position: fixed; inset: 0; z-index: 5; background: var(--bg2); overflow-y: auto; display: none; padding-bottom: 90px; }
   .panel.on { display: block; }
   .panel header { position: sticky; top: 0; }
-  .panel .box { margin: 10px 12px; background: var(--bg); border-radius: 12px; padding: 10px 14px; }
-  .panel label { display: block; color: var(--hint); font-size: 12px; margin: 8px 0 4px; }
+  .panel .box { margin: 10px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+  .panel label { display: block; color: var(--hint); font-size: 12px; margin: 8px 0 4px; font-weight: 600; }
   .panel input, .panel textarea {
-    width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 9px; font: inherit;
-    color: var(--text); background: var(--bg2);
+    width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 10px; padding: 9px; font: inherit;
+    color: var(--text); background: var(--field);
   }
   .panel .pick { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
   .panel .pick:first-child { border-top: 0; }
-  .panel .yr { font-size: 13px; font-weight: 600; color: var(--hint); padding: 12px 0 2px; }
+  .panel .yr { font-size: 12px; font-weight: 800; color: var(--hint); padding: 12px 0 2px; text-transform: uppercase; }
   .panel .yr:first-child { padding-top: 8px; }
   .panel .yr + .pick { border-top: 0; }
   .panel .pick .dot { background: var(--line); }
   .panel .pick.on .dot { background: var(--ok); }
   .panel .msg { color: var(--bad); font-size: 13px; min-height: 18px; margin-top: 6px; }
   .panel .row2 { display: flex; gap: 8px; margin: 10px 12px; }
-  .panel .btn.main { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .panel .btn.main { background: var(--y); color: var(--on-y); border-color: var(--y); font-weight: 900; font-style: italic;
+                     text-transform: uppercase; }
 </style>
 </head>
 <body>
 <header>
   <h1 id="title">Відвідування</h1>
+  <div class="stripe"></div>
   <div class="sub" id="sub"></div>
   <div class="bar">
     <div class="count" id="count"></div>
@@ -132,9 +141,10 @@
 <div class="guests" id="guests" style="display:none">
   <h2>Гості (не члени ГО)</h2>
   <div id="ptbox" style="display:none"><h3>🆕 Записані на ознайомче</h3><div id="ptlist"></div></div>
+  <div id="pabox" style="display:none"><h3>🎟 Після ознайомчого — ходять до заяви</h3><div id="palist"></div></div>
   <div id="glist"></div>
   <div class="gbtns">
-    <button type="button" id="btnTrial">➕ Ознайомче тренування</button>
+    <button type="button" id="btnTrial">🆕 Ознайомче (хоче вступати)</button>
     <button type="button" id="btnSingle">➕ Разовий</button>
   </div>
 </div>
@@ -162,17 +172,19 @@
   <label for="comment">Коментар (необов'язково) — його отримає директор</label>
   <textarea id="comment" maxlength="1000" placeholder="Наприклад: тренування перенесли на поле"></textarea>
 </div>
-<footer>Натискання: жовтий → зелений (присутній) → червоний (відсутній, оберіть причину) → зелений.
-Жовтий — відомостей ще немає; перед збереженням відмітьте всіх або натисніть «Решта присутні».</footer>
+<footer>Натискання: жовтий → зелений (присутній) → червоний (відсутній) → зелений.
+Жовтий — відомостей ще немає; перед збереженням відмітьте всіх або натисніть «Решта присутні».
+Причину відсутності «Сокіл Цифровий» ставить сам — з того, що повідомили батьки.</footer>
 <button id="save" type="button">Зберегти</button>
 
 <script>
 (function () {
   "use strict";
-  var REASONS = [["s", "Хворіє"], ["p", "Повідомили"], ["n", "Без причини"], ["x", "Не допущений"]];
+  // 2.34.0: тренер причину не обирає — її ставить «Сокіл Цифровий» (k[4]) з даних батьків / боргу.
   var WAIT = "?";
   var tg = window.Telegram && window.Telegram.WebApp;
   var data = null;
+  try { if (tg && tg.colorScheme === "light") document.documentElement.classList.add("light"); } catch (e) {}
 
   function decode(part) {
     var s = part.replace(/-/g, "+").replace(/_/g, "/");
@@ -201,7 +213,16 @@
     }
   }
 
-  if (tg) { tg.ready(); tg.expand(); }
+  if (tg) {
+    tg.ready(); tg.expand();
+    try { tg.setHeaderColor && tg.setHeaderColor("#000000"); } catch (e) {}
+    try { tg.MainButton && tg.MainButton.hide(); } catch (e) {}  // своя жовта кнопка «Зберегти» (клубний стиль)
+    try {
+      tg.onEvent && tg.onEvent("themeChanged", function () {
+        document.documentElement.classList.toggle("light", tg.colorScheme === "light");
+      });
+    } catch (e) {}
+  }
 
   if (!data || data.v !== 1 || !Array.isArray(data.k)) {
     document.getElementById("list").outerHTML =
@@ -219,6 +240,12 @@
   order = order.filter(function (i) { return !data.k[i][1]; }).concat(tail);
 
   document.getElementById("title").textContent = "Група " + data.g;
+  // причина відсутності для кожної дитини: k[4] (з 2.34.0), для старих посилань — k[1] або «без причини»
+  function auto(i) { var k = data.k[i]; return k[4] || (k[2] && k[1]) || "n"; }
+  function hintText(k) {
+    if (typeof k[2] === "string") return k[2];
+    return k[2] ? "батьки повідомили про відсутність" : "";
+  }
   if (typeof data.c === "string") document.getElementById("comment").value = data.c;
   document.getElementById("sub").textContent = data.d;
 
@@ -240,31 +267,21 @@
     dot.className = "dot";
     var name = document.createElement("span");
     name.className = "name"; name.textContent = k[0];
-    if (k[2]) {
+    if (hintText(k)) {
       var h = document.createElement("span");
-      h.className = "hint"; h.textContent = "батьки повідомили про відсутність";
+      h.className = "hint"; h.textContent = hintText(k);
       name.appendChild(h);
     }
     var st = document.createElement("span");
     st.className = "state";
     row.appendChild(num); row.appendChild(dot); row.appendChild(name); row.appendChild(st);
-    var reasons = document.createElement("div");
-    reasons.className = "reasons";
-    REASONS.forEach(function (r) {
-      var b = document.createElement("button");
-      b.type = "button"; b.textContent = r[1]; b.dataset.code = r[0];
-      b.addEventListener("click", function (ev) {
-        ev.stopPropagation(); state[i] = r[0]; render(); haptic();
-      });
-      reasons.appendChild(b);
-    });
     row.addEventListener("click", function () {
       if (state[i] === WAIT) state[i] = "";
-      else if (state[i] === "") state[i] = (k[2] && k[1]) ? k[1] : "n";
+      else if (state[i] === "") state[i] = auto(i);
       else state[i] = "";
       render(); haptic();
     });
-    li.appendChild(row); li.appendChild(reasons);
+    li.appendChild(row);
     list.appendChild(li);
     items[i] = li;
   });
@@ -281,9 +298,14 @@
   var pt = Array.isArray(data.pt) ? data.pt : [];
   var ptMark = {}, ptGids = [];
   pt.forEach(function (p) { ptMark[p[0]] = p[4] || ""; if (p[5]) ptGids.push(p[5]); });
+  // 2.34.0: "pa" — після ознайомчого ходять до заяви: [ID ПР-, ім'я, рік, пояснення, відмітка "y"/""]
+  var pa = Array.isArray(data.pa) ? data.pa : [];
+  var paMark = {};
+  pa.forEach(function (p) { paMark[p[0]] = p[4] || ""; });
   if (data.gs) {
     document.getElementById("guests").style.display = "";
     (Array.isArray(data.gv) ? data.gv : []).forEach(function (g) {
+      if (g[0] === "a") { if (paMark.hasOwnProperty(g[1])) paMark[g[1]] = "y"; return; }  // у блоці «до заяви»
       if (g[0] === "p" && ptGids.indexOf(g[1]) >= 0) return;  // уже є в «Записані на ознайомче»
       guests.push({ k: g[0], id: g[1], name: g[2] });
     });
@@ -308,6 +330,23 @@
     });
   }
   function ptCame() { return pt.filter(function (p) { return ptMark[p[0]] === "y"; }).length; }
+  function renderPa() {
+    var box = document.getElementById("palist");
+    if (!pa.length) return;
+    document.getElementById("pabox").style.display = "";
+    box.innerHTML = "";
+    pa.forEach(function (p) {
+      var row = document.createElement("div"); row.className = "pt";
+      var name = document.createElement("span"); name.className = "name";
+      name.textContent = p[1] + (p[2] ? ", " + p[2] : "");
+      if (p[3]) { var w = document.createElement("span"); w.className = "warn"; w.textContent = p[3]; name.appendChild(w); }
+      var yes = document.createElement("button"); yes.type = "button"; yes.className = "yes" + (paMark[p[0]] === "y" ? " on" : "");
+      yes.textContent = "✅ Прийшов";
+      yes.addEventListener("click", function () { paMark[p[0]] = paMark[p[0]] === "y" ? "" : "y"; renderPa(); render(); haptic(); });
+      row.appendChild(name); row.appendChild(yes); box.appendChild(row);
+    });
+  }
+  function paCame() { return pa.filter(function (p) { return paMark[p[0]] === "y"; }).length; }
   function el(id) { return document.getElementById(id); }
   function renderGuests() {
     var box = el("glist");
@@ -321,7 +360,7 @@
       var row = document.createElement("div");
       row.className = "g";
       var tag = document.createElement("span");
-      tag.className = "tag"; tag.textContent = g.k === "p" ? "ознайомче" : "разове";
+      tag.className = "tag"; tag.textContent = g.k === "p" ? "ознайомче" : g.k === "a" ? "до заяви" : "разове";
       var name = document.createElement("span");
       name.className = "name"; name.textContent = g.name + (g.id ? "" : " · нова");
       var x = document.createElement("button");
@@ -334,7 +373,6 @@
   function openPanel(id) {
     panelOpen = true;
     el(id).classList.add("on");
-    try { tg && tg.MainButton && tg.MainButton.hide(); } catch (e) {}
     el("save").style.display = "none";
   }
   function closePanels() {
@@ -378,9 +416,9 @@
   var formKind = "p";
   function openForm(kind) {
     formKind = kind;
-    el("fTitle").textContent = kind === "p" ? "➕ Ознайомче тренування" : "➕ Разовий — нова дитина";
-    el("fSub").textContent = kind === "p" ? "Перша реєстрація дитини, яка прийшла на ознайомче"
-                                          : "Дитина ще жодного разу не приходила разово";
+    el("fTitle").textContent = kind === "p" ? "🆕 Ознайомче (хоче вступати)" : "➕ Разовий — нова дитина";
+    el("fSub").textContent = kind === "p" ? "Перша реєстрація дитини, яка прийшла на ознайомче й хоче вступати"
+                                          : "Тренується разово, вступати не планує. Хоче вступати — «🆕 Ознайомче»";
     ["fSurname", "fFirst", "fYear", "fParent", "fPhone", "fNote"].forEach(function (id) { el(id).value = ""; });
     el("fNoteBox").style.display = kind === "p" ? "" : "none";  // коментар — лише для ознайомчого (рішення 26.10.2026)
     el("fMsg").textContent = "";
@@ -434,9 +472,6 @@
       li.classList.toggle("absent", s !== "" && s !== WAIT);
       li.classList.toggle("wait", s === WAIT);
       li.querySelector(".state").textContent = label(s);
-      Array.prototype.forEach.call(li.querySelectorAll(".reasons button"), function (b) {
-        b.classList.toggle("on", b.dataset.code === s);
-      });
     });
     var c = counts();
     document.getElementById("count").innerHTML =
@@ -444,16 +479,12 @@
       '<span><i class="dot" style="background:var(--bad)"></i><b>' + c.bad + '</b></span>' +
       '<span><i class="dot" style="background:var(--wait)"></i><b>' + c.wait + '</b></span>';
     document.getElementById("all").style.display = c.wait ? "" : "none";
+    var nGuests = guests.length + ptCame() + paCame();
     var text = c.wait ? "Відмітьте ще " + c.wait : "Зберегти · присутні " + c.ok + " з " + state.length
-      + ((guests.length + ptCame()) ? " + гостей " + (guests.length + ptCame()) : "");
+      + (nGuests ? " + гостей " + nGuests : "");
     if (panelOpen) return;
-    if (tg && tg.MainButton) {
-      tg.MainButton.setText(text);
-      tg.MainButton.show();
-    } else {
-      var s = document.getElementById("save");
-      s.textContent = text; s.style.display = "block"; s.classList.toggle("off", !!c.wait);
-    }
+    var s = document.getElementById("save");
+    s.textContent = text; s.style.display = "block"; s.classList.toggle("off", !!c.wait);
   }
 
   function send() {
@@ -466,11 +497,12 @@
       return;
     }
     var absent = [];
-    state.forEach(function (r, i) { if (r) absent.push([i, r]); });
+    state.forEach(function (r, i) { if (r) absent.push([i, r === WAIT ? auto(i) : r]); });
     var comment = document.getElementById("comment").value.replace(/\s+/g, " ").trim().slice(0, 1000);
     var msg = { v: 1, t: data.t, a: absent, c: comment };
     if (data.gs) {
-      msg.g = guests.filter(function (g) { return g.id; }).map(function (g) { return [g.k, g.id]; });
+      msg.g = guests.filter(function (g) { return g.id; }).map(function (g) { return [g.k, g.id]; })
+        .concat(pa.filter(function (p) { return paMark[p[0]] === "y"; }).map(function (p) { return ["a", p[0]]; }));
       msg.gn = guests.filter(function (g) { return !g.id; }).map(function (g) { return [g.k].concat(g.f); });
     }
     if (pt.length) msg.pt = pt.map(function (p) { return [p[0], ptMark[p[0]] || ""]; });
@@ -482,10 +514,10 @@
     }
   }
 
-  if (tg && tg.MainButton) tg.MainButton.onClick(send);
   document.getElementById("save").addEventListener("click", send);
   renderGuests();
   renderPt();
+  renderPa();
   render();
 })();
 </script>
