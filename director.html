@@ -381,11 +381,11 @@ const SECTIONS = [
   ["groups","👥","Групи й тренери"], ["finance","💰","Фінанси"], ["occupancy","🏟","Зайнятість"], ["newcomers","🆕","Новенькі"],
   ["reports","📊","Звіти"], ["views","👁","Кабінети й демо"], ["tech","🛠","Технічне"], ["settings","🔔","Налаштування"],
 ];
-function counts() {
+let counts = function () {
   const open = inbox.filter(c => ["new","seen","work","late"].includes(c.status));
   return {inbox: open.length, late: inbox.filter(c => c.status === "late").length, appeals: appeals.filter(a => a.status === "new").length,
           newcomers: trials.filter(t => t.st === "Очікує підтвердження").length};
-}
+};
 function renderNav() {
   const c = counts();
   $("#nav").innerHTML = SECTIONS.map(([id, ic, t]) => {
@@ -402,6 +402,8 @@ function render() {
   const s = SECTIONS.find(x => x[0] === st.sec); $("#title").textContent = s[2];
   const c = $("#content"); c.className = "content"; c.scrollTop = 0;
   (VIEWS[st.sec] || (() => c.innerHTML = ""))(c);
+  if (LIVE && st.sec !== "inbox" && st.sec !== "settings")  // 2.33.0: решта розділів — поки демо
+    c.insertAdjacentHTML("afterbegin", `<div class="card" style="border-left:4px solid #FFEC02;margin-bottom:12px;grid-column:1/-1">🧪 <b>Демо-дані.</b> Цей розділ підключимо до справжніх даних згодом. Справжні дані зараз — у «📥 Скринька».</div>`);
   setHash();
 }
 function split(c, listHtml, detailHtml, hasSel) {
@@ -827,6 +829,84 @@ VIEWS.settings = c => {
 };
 
 /* ═══════════════════════════ ТЕМА, TELEGRAM, СТАРТ ═══════════════════════════ */
+
+/* ═══════════════════════════ LIVE: справжні дані (2.33.0, етап 2 — 📥 Скринька) ═══════════════════════════
+   Коли сторінку віддає сервер Сокіл Цифровий (window.DESK_LIVE), «📥 Скринька» працює зі справжніми картками: ті самі
+   кнопки й дії, що в Telegram (результат видно і там). Решта розділів поки — демо з позначкою. */
+const LIVE = !!window.DESK_LIVE;
+const L = {tab: "new", kind: "", items: null, counts: {}, types: {}, card: null, cardFor: null, loading: false};
+async function call(m, body) {
+  const tg = window.Telegram && Telegram.WebApp;
+  try {
+    const r = await fetch("api/" + m, {method: "POST", headers: {"Content-Type": "application/json", "X-Init-Data": (tg && tg.initData) || ""},
+                                       body: JSON.stringify(body || {})});
+    const j = await r.json().catch(() => ({error: "Немає відповіді від Сокіл Цифровий"}));
+    if (!r.ok || j.error) { toast("⚠️ " + (j.error || ("Помилка " + r.status))); if (j.auth) L.denied = j.error; return null; }
+    return j;
+  } catch (e) { toast("⚠️ Немає зв'язку з Сокіл Цифровий — перевірте, що бот і тунель працюють"); return null; }
+}
+async function liveList() {
+  if (L.loading) return; L.loading = true;
+  const r = await call("inbox", {tab: L.tab, kind: L.kind}); L.loading = false;
+  if (r) { L.items = r.items; L.counts = r.counts; L.types = r.types; } else if (!L.items) L.items = [];
+  render();
+}
+async function liveCard(rid) {
+  L.cardFor = rid; const r = await call("card", {rid}); if (r && L.cardFor === rid) { L.card = r; render(); }
+}
+function liveFiles(fs) {
+  if (!fs || !fs.length) return "";
+  return `<div class="files">${fs.map((f, i) => `<div class="file" data-lf="${i}">${f.img ? `<img src="${esc(f.url)}" alt="">` : `<div style="font-size:34px;padding:18px 0">📄</div>`}<div>📎 ${esc(f.n)}</div></div>`).join("")}</div>`;
+}
+if (LIVE) {
+  const LT = [["new","🆕 Нові"],["work","⏳ В роботі"],["late","⌛ Прострочені"],["closed","🏁 Закриті"]];
+  counts = () => ({inbox: (L.counts.new || 0) + (L.counts.work || 0), late: L.counts.late || 0, appeals: 0, newcomers: 0});
+  VIEWS.inbox = c => {
+    if (L.denied) { c.innerHTML = `<div class="empty"><b>🔒</b>${esc(L.denied)}</div>`; return; }
+    if (L.items === null) { c.innerHTML = `<div class="empty"><b>⏳</b>Завантажую скриньку…</div>`; liveList(); return; }
+    const sel = st.sel.inbox ? Number(st.sel.inbox) : null;
+    if (sel && L.cardFor !== sel) liveCard(sel);
+    const x = sel && L.card && L.card.rid === sel ? L.card : null;
+    const listHtml = `<div class="tabs">${LT.map(t => `<button class="tab ${L.tab === t[0] ? "on" : ""}" data-tab="${t[0]}">${t[1]}${L.counts[t[0]] ? `<span class="n">${L.counts[t[0]]}</span>` : ""}</button>`).join("")}</div>
+      <div class="chips">${[...new Set(L.items.map(i => i.type))].map(t => `<button class="chip ${L.kind === t ? "on" : ""}" data-f="${t}">${esc(L.types[t] || t)}</button>`).join("")}
+        <button class="chip" data-reload="1">🔄 Оновити</button></div>
+      ${L.items.filter(i => !L.kind || i.type === L.kind).map(i => `<button class="row ${sel === i.rid ? "sel" : ""}" data-id="${i.rid}"><div class="t"><b>${i.icon} ${esc(i.title)}</b><span class="r">${i.when}</span></div><div class="s">${i.id} · ${esc(i.from)}</div><div style="margin-top:4px">${badge(i.status)}${i.due ? ` <span class="muted small">строк ${esc(i.due)}</span>` : ""}</div></button>`).join("") || `<div class="empty"><b>✨</b>Тут порожньо</div>`}`;
+    let det = `<div class="empty"><b>📥</b>Оберіть картку зліва</div>`;
+    if (sel && !x) det = `<div class="empty"><b>⏳</b>Відкриваю картку…</div>`;
+    if (x) {
+      const acts = x.buttons.map(r => r.map(b => `<button class="btn ${/^(✅|📋)/.test(b.text) ? "ok" : /^❌/.test(b.text) ? "er" : ""}" data-press="${esc(b.data)}" data-label="${esc(b.text)}">${esc(b.text)}</button>`).join("")).join("");
+      det = `<div class="dhead"><div style="font-size:30px">${x.icon}</div><div><div class="ttl">${esc(x.title)}</div><div class="yline"></div></div></div>
+        <dl class="meta"><dt>Картка</dt><dd>${x.id} · ${esc(x.label)}</dd><dt>Від кого</dt><dd>${esc(x.from)}</dd><dt>Надійшло</dt><dd>${x.when}</dd>
+        ${x.due ? `<dt>Строк</dt><dd>${esc(x.due)}${x.ext ? ` (продовжено: ${x.ext})` : ""}</dd>` : ""}<dt>Статус</dt><dd>${badge(x.status)}${x.decision ? " — " + esc(x.decision) : ""}</dd></dl>
+        <div class="body">${esc(x.text)}</div>${liveFiles(x.files)}
+        <div class="actions">${acts || `<span class="muted small">Дій немає — картку закрито.</span>`}</div>
+        <div class="muted small" style="margin-top:6px">Дії виконуються так само, як у Telegram: результат з'явиться і в чаті з Сокіл Цифровий.</div>
+        <h3>Історія</h3><div class="hist">${x.hist.map(h => `<div><i>${h[0]}</i>${esc(h[1])}</div>`).join("")}</div>`;
+    }
+    split(c, listHtml, det, !!sel);
+    c.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { L.tab = b.dataset.tab; L.kind = ""; L.items = null; st.sel.inbox = null; render(); });
+    c.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { L.kind = L.kind === b.dataset.f ? "" : b.dataset.f; render(); });
+    c.querySelectorAll("[data-reload]").forEach(b => b.onclick = () => { L.items = null; L.cardFor = null; render(); });
+    c.querySelectorAll("[data-id]").forEach(b => b.onclick = () => go("inbox", Number(b.dataset.id)));
+    if (x) {
+      c.querySelectorAll("[data-lf]").forEach(el => el.onclick = () => { const f = x.files[+el.dataset.lf]; if (f.img) viewImg(f.url); else window.open(f.url, "_blank"); });
+      c.querySelectorAll("[data-press]").forEach(b => b.onclick = async () => {
+        const data = b.dataset.press, label = b.dataset.label;
+        if (data.startsWith("ib:r:")) {
+          return askText("Відповідь: " + x.from, "Текст піде автору в Сокіл Цифровий і запишеться в картку", async t => {
+            if (!t) return; const r = await call("reply", {rid: x.rid, text: t});
+            if (r) { toast("✅ Відповідь надіслано"); L.card = r.card; L.items = null; render(); }
+          });
+        }
+        b.disabled = true;
+        const r = await call("press", {rid: x.rid, data, label});
+        if (r) { toast(r.note ? r.note : "✅ Виконано. Якщо потрібні ще кроки — вони в Telegram."); L.card = r.card; L.items = null; render(); }
+        else b.disabled = false;
+      });
+    }
+  };
+}
+
 function theme() { return document.documentElement.dataset.theme === "light" ? "light" : "dark"; }
 function setTheme(t) {
   document.documentElement.dataset.theme = t;
@@ -841,7 +921,7 @@ function setTheme(t) {
   const tg = window.Telegram && Telegram.WebApp;
   if (tg && tg.initData) {
     try { tg.ready(); tg.expand(); } catch (e) {}
-    const u = tg.initDataUnsafe && tg.initDataUnsafe.user; if (u) $("#who").textContent = (u.first_name || "") + " " + (u.last_name || "") + " · демо";
+    const u = tg.initDataUnsafe && tg.initDataUnsafe.user; if (u) $("#who").textContent = (u.first_name || "") + " " + (u.last_name || "") + (LIVE ? "" : " · демо");
   }
   $("#fsBtn").onclick = () => {
     if (tg && tg.requestFullscreen && tg.isVersionAtLeast && tg.isVersionAtLeast("8.0")) { try { tg.isFullscreen ? tg.exitFullscreen() : tg.requestFullscreen(); return; } catch (e) {} }
@@ -860,6 +940,8 @@ function setTheme(t) {
   const h = decodeURIComponent((location.hash || "").slice(1)); const sp = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
   const [sec, sel] = (h || (sp ? sp.replace("_", "/") : "")).split("/");
   if (sec && SECTIONS.find(s => s[0] === sec)) { st.sec = sec; if (sel) st.sel[sec] = sel; }
+  if (LIVE && !sec) st.sec = "inbox";  // 2.33.0: справжні дані — одразу скринька
+  if (LIVE && st.sec === "inbox" && st.sel.inbox && !/^\d+$/.test(String(st.sel.inbox))) st.sel.inbox = null;
   render();
 })();
 </script>
