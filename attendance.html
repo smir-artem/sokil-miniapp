@@ -99,6 +99,13 @@
                padding: 5px 11px; font-size: 13px; font-weight: 700; }
   .pt button.yes.on { background: var(--y); border-color: var(--y); color: var(--on-y); }
   .pt button.no.on { border-color: var(--bad); color: var(--bad); }
+  .pt button.ph, .guests .g .ph { padding: 5px 9px; }
+  .guests .g .ph { border: 1px solid var(--line); background: transparent; border-radius: 20px; font-size: 13px; }
+  .cinfo { display: none; margin: -2px 0 6px; padding: 8px 10px; border-radius: 10px; background: var(--field);
+           font-size: 13px; line-height: 1.45; }
+  .cinfo.on { display: block; }
+  .cinfo a { color: var(--text); font-weight: 700; }
+  .cinfo i { color: var(--hint); }
   #ptbox, #pabox { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
   .gbtns { display: flex; gap: 8px; margin-top: 8px; }
   .gbtns button, .panel .btn {
@@ -326,10 +333,29 @@
       no.textContent = "❌";
       yes.addEventListener("click", function () { ptMark[p[0]] = ptMark[p[0]] === "y" ? "" : "y"; renderPt(); render(); haptic(); });
       no.addEventListener("click", function () { ptMark[p[0]] = ptMark[p[0]] === "n" ? "" : "n"; renderPt(); render(); haptic(); });
-      row.appendChild(name); row.appendChild(yes); row.appendChild(no); box.appendChild(row);
+      var cb = contactBtn(p[0], box);
+      row.appendChild(name); if (cb) row.appendChild(cb[0]); row.appendChild(yes); row.appendChild(no); box.appendChild(row);
+      if (cb) box.appendChild(cb[1]);
     });
   }
   function ptCame() { return pt.filter(function (p) { return ptMark[p[0]] === "y"; }).length; }
+  // 2.35.0: «📞» — хто привів, телефон (дзвінок одним дотиком), коментар тренера; data.ct = {ключ: [хто, телефон, коментар]}
+  var ct = data.ct || {};
+  function contactBtn(key, box) {
+    var c = ct[String(key)];
+    if (!c) return null;
+    var info = document.createElement("div"); info.className = "cinfo";
+    if (c[0]) info.appendChild(document.createTextNode(c[0]));
+    if (c[1]) {
+      if (c[0]) info.appendChild(document.createTextNode(" · "));
+      var a = document.createElement("a"); a.href = "tel:" + String(c[1]).replace(/[^\d+]/g, ""); a.textContent = c[1];
+      info.appendChild(a);
+    }
+    if (c[2]) { info.appendChild(document.createElement("br")); var i = document.createElement("i"); i.textContent = "💬 " + c[2]; info.appendChild(i); }
+    var b = document.createElement("button"); b.type = "button"; b.className = "ph"; b.textContent = "📞";
+    b.addEventListener("click", function (ev) { ev.stopPropagation(); info.classList.toggle("on"); haptic(); });
+    return [b, info];
+  }
   function renderPa() {
     var box = document.getElementById("palist");
     if (!pa.length) return;
@@ -343,7 +369,9 @@
       var yes = document.createElement("button"); yes.type = "button"; yes.className = "yes" + (paMark[p[0]] === "y" ? " on" : "");
       yes.textContent = "✅ Прийшов";
       yes.addEventListener("click", function () { paMark[p[0]] = paMark[p[0]] === "y" ? "" : "y"; renderPa(); render(); haptic(); });
-      row.appendChild(name); row.appendChild(yes); box.appendChild(row);
+      var cb = contactBtn(p[0], box);
+      row.appendChild(name); if (cb) row.appendChild(cb[0]); row.appendChild(yes); box.appendChild(row);
+      if (cb) box.appendChild(cb[1]);
     });
   }
   function paCame() { return pa.filter(function (p) { return paMark[p[0]] === "y"; }).length; }
@@ -366,8 +394,10 @@
       var x = document.createElement("button");
       x.className = "x"; x.type = "button"; x.textContent = "×";
       x.addEventListener("click", function () { guests.splice(n, 1); renderGuests(); render(); haptic(); });
-      row.appendChild(tag); row.appendChild(name); row.appendChild(x);
+      var cb = (g.k === "p" || g.k === "a") && g.id ? contactBtn(g.id, box) : null;
+      row.appendChild(tag); row.appendChild(name); if (cb) row.appendChild(cb[0]); row.appendChild(x);
       box.appendChild(row);
+      if (cb) box.appendChild(cb[1]);
     });
   }
   function openPanel(id) {
