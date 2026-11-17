@@ -54,7 +54,7 @@
     ".swc-back{border:0;background:none;color:var(--k);padding:10px 0;font-weight:600}",
     ".swc-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px}",
     ".swc-card{background:#fff;border-radius:12px;max-width:340px;width:100%;overflow:hidden;position:relative}",
-    ".swc-card .swc-ph{aspect-ratio:1/1}.swc-card .b{padding:12px 14px;border-top:4px solid var(--y)}",
+    ".swc-card{max-height:92vh;overflow:auto}.swc-card .car-t{margin-top:8px;font-size:13px}.swc-card .car-t th{font-size:12px}.swc-card .car-t td{padding:4px 3px}.swc-card .car-t .tot td{font-weight:700;background:#fff8c4}.swc-card .swc-ph{aspect-ratio:1/1;max-height:260px}.swc-card .car-t td.l:first-child{white-space:nowrap}.swc-card .b{padding:12px 14px;border-top:4px solid var(--y)}",
     ".swc-card .x{position:absolute;top:6px;right:8px;border:0;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:30px;height:30px}",
     ".swc-when{font-weight:400;color:var(--m);font-size:13px;margin-left:6px}.swc-fest{background:#fff8c4;border-radius:8px;padding:8px 12px;margin:10px 0;font-size:14px}.swc-round{font-size:13px;font-weight:600;color:var(--m);margin:10px 0 2px;text-transform:uppercase;letter-spacing:.3px}.swc-note{font-size:12px;color:var(--m);margin:-4px 0 10px}.swc-empty{color:var(--m);padding:16px 0}.swc-foot{font-size:12px;color:var(--m);padding:10px 0}",
     "@media(max-width:560px){.swc{font-size:14px}.swc .hide-s{display:none}.swc-m .s{min-width:56px;font-size:15px}.swc-tabs button{padding:8px 10px}}"
@@ -258,16 +258,49 @@
       }).join("") + "</div>" : '<div class="swc-empty">Склад ще не подано.</div>');
   }
 
+  function keyOf(pid) {  // гравець архіву (S + ID сайту) → гравець системи, якщо зв'язаний
+    var links = (CUR && CUR.links) || {};
+    return pid.charAt(0) === "S" && links[pid.slice(1)] ? links[pid.slice(1)] : pid;
+  }
+  function careerRows(key) {  // усі виступи гравця в поточному й архівних сезонах
+    var sets = [CUR].concat(SEASONS.map(function (x) { return ARCH[x.season]; })).filter(Boolean), rows = [];
+    sets.forEach(function (d) {
+      for (var k in d.teams) {
+        var t = d.teams[k];
+        (t.players || []).forEach(function (p) {
+          if (keyOf(p.id) !== key) return;
+          var fest = (d.categories || []).some(function (c) { return c.name === t.category && c.festival; });
+          rows.push({ season: d.season, cat: t.category, team: t.name, games: p.games || 0, goals: fest ? null : p.goals || 0, photo: p.photo });
+        });
+      }
+    });
+    rows.sort(function (a, b) { return a.season < b.season ? 1 : a.season > b.season ? -1 : 0; });
+    return rows;
+  }
   function showPlayer(pid) {
     var f = findPlayer(pid);
     if (!f) return;
-    var p = f.p, box = document.createElement("div");
+    var p = f.p, box = document.createElement("div"), key = keyOf(p.id);
     box.className = "swc swc-modal";
-    box.innerHTML = '<div class="swc-card"><button class="x" aria-label="Закрити">✕</button>' + photo(p) + '<div class="b"><b style="font-size:17px">' +
+    box.innerHTML = '<div class="swc-card"><button class="x" aria-label="Закрити">✕</button><div class="ph">' + photo(p) + '</div><div class="b"><b style="font-size:17px">' +
       (p.num !== "" ? '<span class="swc-num">' + esc(p.num) + "</span>" : "") + esc(p.name) + "</b><div>" + logo(f.t) + esc(f.t.name) + "</div>" +
-      (p.dob ? "<div>Дата народження: " + esc(p.dob) + "</div>" : "") + "<div>Ігор: " + (p.games || 0) + (isFest(f.t.category) ? "" : " · Голів: " + (p.goals || 0)) + "</div></div></div>";
+      (p.dob ? "<div>Дата народження: " + esc(p.dob) + "</div>" : "") + '<div class="car"><div class="swc-note">Завантаження виступів…</div></div></div></div>';
     box.addEventListener("click", function (e) { if (e.target === box || e.target.className === "x") box.remove(); });
     document.body.appendChild(box);
+    Promise.all(SEASONS.map(function (x) { return loadSeason(x.season).catch(function () { return null; }); })).then(function () {
+      var rows = careerRows(key), car = box.querySelector(".car");
+      if (!rows.length) rows = [{ season: (DATA && DATA.season) || "", cat: f.t.category, team: f.t.name, games: p.games || 0, goals: isFest(f.t.category) ? null : p.goals || 0 }];
+      if (!p.photo) {
+        var ph = rows.filter(function (r) { return r.photo; })[0];
+        if (ph) box.querySelector(".ph").innerHTML = photo({ photo: ph.photo, name: p.name });
+      }
+      var tg = 0, tgl = 0;
+      rows.forEach(function (r) { tg += r.games; tgl += r.goals || 0; });
+      car.innerHTML = '<table class="car-t"><tr><th class="l">Сезон</th><th class="l">Команда</th><th title="Ігри">І</th><th title="Голи">⚽</th></tr>' +
+        rows.map(function (r) {
+          return '<tr><td class="l">' + esc(r.season) + '</td><td class="l">' + esc(r.team) + "</td><td>" + r.games + "</td><td>" + (r.goals == null ? "—" : r.goals) + "</td></tr>";
+        }).join("") + (rows.length > 1 ? '<tr class="tot"><td class="l" colspan="2">Усього</td><td>' + tg + "</td><td>" + tgl + "</td></tr>" : "") + "</table>";
+    });
   }
 
   // ───────────── віджет ─────────────
