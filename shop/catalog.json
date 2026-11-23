@@ -1,0 +1,882 @@
+{
+ "schema_version": "1.0",
+ "generated_at": "2026-11-23T19:39:44",
+ "currency": "UAH",
+ "categories": [
+  "Для вболівальників",
+  "Футболки",
+  "Ігрова форма",
+  "Спортивний одяг",
+  "Гетри й шкарпетки",
+  "Сувеніри"
+ ],
+ "items": [
+  {
+   "code": "ТВ-001",
+   "name": "Фірмова футболка чорна",
+   "category": "Для вболівальників",
+   "description": "",
+   "price": 1050,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "Oversize XXL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "Oversize 3XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-002",
+   "name": "Фірмова футболка біла",
+   "category": "Для вболівальників",
+   "description": "",
+   "price": 1050,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "Oversize XXL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "Oversize 3XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-003",
+   "name": "Клубний утеплений жилет",
+   "category": "Для вболівальників",
+   "description": "",
+   "price": 1800,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "S(48)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M(50)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L(52-54)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL(56)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XXL(58-60)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XL(62)",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-004",
+   "name": "Фірмова кепка",
+   "category": "Для вболівальників",
+   "description": "",
+   "price": 550,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "універсальний",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-005",
+   "name": "Шарф вболівальника",
+   "category": "Для вболівальників",
+   "description": "",
+   "price": 400,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "—",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-006",
+   "name": "Футболка дитяча жовта",
+   "category": "Футболки",
+   "description": "",
+   "price": 450,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-007",
+   "name": "Футболка дитяча чорна",
+   "category": "Футболки",
+   "description": "",
+   "price": 450,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-008",
+   "name": "Футболка жовта",
+   "category": "Футболки",
+   "description": "",
+   "price": 500,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XXL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-009",
+   "name": "Футболка чорна",
+   "category": "Футболки",
+   "description": "",
+   "price": 500,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XXL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-010",
+   "name": "Комплект форми ДФА (номер + прізвище)",
+   "category": "Ігрова форма",
+   "description": "",
+   "price": 1800,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "3XS-4XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "2XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": true
+  },
+  {
+   "code": "ТВ-011",
+   "name": "Футболка гравця ДФА (номер + прізвище)",
+   "category": "Ігрова форма",
+   "description": "",
+   "price": 1000,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "3XS-4XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "2XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": true
+  },
+  {
+   "code": "ТВ-012",
+   "name": "Шорти гравця ДФА",
+   "category": "Ігрова форма",
+   "description": "",
+   "price": 550,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "5XS-6XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XS-4XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "2XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-013",
+   "name": "Спортивний костюм ДФА",
+   "category": "Спортивний одяг",
+   "description": "",
+   "price": 2800,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "5XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "4XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "2XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XS",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-014",
+   "name": "Спортивна кофта ДФА",
+   "category": "Спортивний одяг",
+   "description": "",
+   "price": 1500,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "5XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "4XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "2XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XS",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-015",
+   "name": "Спортивна кофта СФК",
+   "category": "Спортивний одяг",
+   "description": "",
+   "price": 1800,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XXL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-016",
+   "name": "Штани спортивні",
+   "category": "Спортивний одяг",
+   "description": "",
+   "price": 1500,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "5XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "4XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "2XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XXL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-017",
+   "name": "Спортивний костюм СФК",
+   "category": "Спортивний одяг",
+   "description": "",
+   "price": 3000,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-018",
+   "name": "Вітровка",
+   "category": "Спортивний одяг",
+   "description": "",
+   "price": 1250,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "5XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "4XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "3XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "2XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XS",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XXL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-019",
+   "name": "Куртка зимова",
+   "category": "Спортивний одяг",
+   "description": "",
+   "price": 5000,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "S",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "M",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "L",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "XL",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-020",
+   "name": "Клубні гетри (зі шкарпеткою)",
+   "category": "Гетри й шкарпетки",
+   "description": "",
+   "price": 280,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "18 (27-29)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "22 (33-35)",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-021",
+   "name": "Клубні гетри (без стопи)",
+   "category": "Гетри й шкарпетки",
+   "description": "",
+   "price": 200,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "—",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-022",
+   "name": "Спортивні шкарпетки",
+   "category": "Гетри й шкарпетки",
+   "description": "",
+   "price": 150,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "23 (35-38)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "25 (39-41)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "27 (42-43)",
+     "status": "check",
+     "qty": null
+    },
+    {
+     "size": "29 (44-45)",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-023",
+   "name": "Рюкзак 23,8 л",
+   "category": "Сувеніри",
+   "description": "",
+   "price": 1300,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "—",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-024",
+   "name": "Рюкзак 44,2 л",
+   "category": "Сувеніри",
+   "description": "",
+   "price": 1500,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "—",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  },
+  {
+   "code": "ТВ-025",
+   "name": "Чашка 310 мл",
+   "category": "Сувеніри",
+   "description": "",
+   "price": 250,
+   "photos": [],
+   "sizes": [
+    {
+     "size": "—",
+     "status": "check",
+     "qty": null
+    }
+   ],
+   "size_chart": "",
+   "personalized": false
+  }
+ ],
+ "order_note": "Онлайн-замовлення відкриємо найближчим часом. Поки що замовити можна за телефоном клубу.",
+ "site_url": "https://sfcsokil.com/"
+}

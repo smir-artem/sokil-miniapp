@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Фан-шоп СФК «Сокіл»</title>
+<meta name="description" content="Клубна екіпіровка й сувеніри СФК «Сокіл»: фото, ціни, розміри й наявність.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,900&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* Фан-шоп СФК «Сокіл» (2.41.0, етап 1 — каталог). Одна сторінка для Telegram (Mini App) і для звичайного браузера
+   (телефон / комп'ютер). Дані — shop/catalog.json поруч (публікує Сокіл Цифровий з таблиці «Сокіл · Склад»).
+   Брендбук: жовтий #FFEC02, чорний, білий; Montserrat, заголовки — Black Italic. Тема — з Telegram або системи. */
+:root{
+  --y:#FFEC02; --on-y:#0A0A0A;
+  --bg:#F4F4F1; --head:#0A0A0A; --card:#FFFFFF; --card2:#F7F7F4; --line:#E3E3DE;
+  --text:#0A0A0A; --sub:#5F5F5A;
+  --ok:#14713A; --okb:#E2F4E8; --er:#8A8A85; --erb:#EFEFEB; --wr:#8F5400; --wrb:#FFF0D2;
+  --shadow:0 1px 2px rgba(0,0,0,.06); color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#0A0A0A; --head:#000; --card:#161616; --card2:#1D1D1D; --line:#262626;
+  --text:#FFFFFF; --sub:#A8A8A8;
+  --ok:#5BE49B; --okb:#12301F; --er:#8C8C8C; --erb:#1F1F1F; --wr:#FFB04D; --wrb:#3A2400;
+  --shadow:0 1px 0 rgba(255,255,255,.04); color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 'Montserrat',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.head{background:var(--head);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:5}
+.head .row{display:flex;align-items:center;gap:12px;max-width:1180px;margin:0 auto}
+.brand{font-weight:900;font-style:italic;font-size:20px;text-transform:uppercase;letter-spacing:.3px;line-height:1.05;white-space:nowrap}
+.brand span{color:var(--y)}
+.brand small{display:block;color:#9a9a9a;font-size:10.5px;font-style:normal;font-weight:600;letter-spacing:.5px;margin-top:3px}
+.sp{flex:1}
+.search{display:flex;align-items:center;gap:6px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:7px 10px;min-width:0;width:240px}
+.search input{all:unset;flex:1;min-width:0;font-size:13px;color:#fff}
+.cats{display:flex;gap:6px;overflow-x:auto;max-width:1180px;margin:10px auto 0;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.chip{all:unset;cursor:pointer;white-space:nowrap;padding:6px 12px;border-radius:20px;background:#1a1a1a;color:#ddd;font-weight:600;font-size:12.5px;border:1px solid #2a2a2a}
+.chip.on{background:var(--y);color:#000;border-color:var(--y)}
+main{max-width:1180px;margin:0 auto;padding:14px 12px 40px}
+.note{background:var(--wrb);color:var(--wr);border-radius:12px;padding:10px 12px;font-weight:600;font-size:13px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}
+@media (min-width:980px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:520px){.search{width:150px}.brand small{display:none}}
+.card{all:unset;box-sizing:border-box;cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.card:hover{border-color:var(--sub)}
+.ph{aspect-ratio:1/1;background:var(--card2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ini{font-weight:900;font-style:italic;font-size:34px;color:var(--sub);text-transform:uppercase}
+.ini span{color:var(--y);text-shadow:0 0 1px #000}
+.body{padding:10px 11px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.name{font-weight:700;font-size:13.5px;line-height:1.3}
+.price{font-weight:900;font-style:italic;font-size:17px}
+.avail{font-size:11.5px;font-weight:600;color:var(--sub)}
+.avail.ok{color:var(--ok)}
+.sizes{display:flex;flex-wrap:wrap;gap:6px}
+.sz{border-radius:8px;padding:4px 8px;font-size:12px;font-weight:700;border:1px solid var(--line);background:var(--card2)}
+.sz.in{background:var(--okb);color:var(--ok);border-color:transparent}
+.sz.out{background:var(--erb);color:var(--er);text-decoration:line-through;border-color:transparent}
+.sz.check{background:var(--wrb);color:var(--wr);border-color:transparent}
+.sz small{font-weight:600;opacity:.8;margin-left:3px}
+.empty,.err{color:var(--sub);text-align:center;padding:40px 10px;font-weight:600}
+/* картка товару */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.ov.show{display:flex}
+@media (min-width:720px){.ov{align-items:center}}
+.sheet{background:var(--card);width:100%;max-width:760px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:0 0 20px}
+@media (min-width:720px){.sheet{border-radius:18px;display:grid;grid-template-columns:1fr 1fr;gap:0}}
+.gal{position:relative;background:var(--card2)}
+.gal .main{aspect-ratio:1/1;font-size:20px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.gal .main img{width:100%;height:100%;object-fit:contain}
+.thumbs{display:flex;gap:6px;padding:8px;overflow-x:auto}
+.thumbs img{width:52px;height:52px;object-fit:cover;border-radius:8px;border:2px solid transparent;cursor:pointer}
+.thumbs img.on{border-color:var(--y)}
+.info{padding:16px 16px 0;display:flex;flex-direction:column;gap:12px}
+.info h2{margin:0;font-weight:900;font-style:italic;font-size:20px;text-transform:uppercase;line-height:1.15}
+.info .price{font-size:22px}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--sub);font-weight:700;margin-bottom:6px}
+.desc{white-space:pre-wrap}
+.chart{white-space:pre-wrap;font-size:12.5px;background:var(--card2);border-radius:10px;padding:10px;overflow-x:auto}
+.pers{background:var(--card2);border-left:4px solid var(--y);border-radius:8px;padding:8px 10px;font-size:13px}
+.legend{font-size:11.5px;color:var(--sub)}
+.x{all:unset;cursor:pointer;position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;z-index:2}
+.cta{background:var(--y);color:var(--on-y);border-radius:12px;padding:12px;font-weight:700;font-size:13.5px;text-align:center}
+.cta a{color:inherit}
+footer{max-width:1180px;margin:0 auto;padding:0 14px 30px;color:var(--sub);font-size:11.5px}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<div class="head">
+  <div class="row">
+    <div class="brand">Фан-шоп <span>«Сокіл»</span><small>КЛУБНА ЕКІПІРОВКА Й СУВЕНІРИ</small></div>
+    <div class="sp"></div>
+    <label class="search">🔎<input id="q" type="search" placeholder="Пошук" autocomplete="off"></label>
+  </div>
+  <div class="cats" id="cats"></div>
+</div>
+<main>
+  <div class="note" id="note" hidden></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>Нічого не знайдено</div>
+  <div class="err" id="err" hidden></div>
+</main>
+<footer id="foot"></footer>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+<script>
+"use strict";
+const tg = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData !== undefined ? Telegram.WebApp : null;
+const inTg = !!(tg && tg.initData);
+const dark = inTg ? tg.colorScheme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+if (dark) document.documentElement.dataset.theme = "dark";
+if (inTg) { tg.ready(); tg.expand(); try { tg.setHeaderColor("#000000"); } catch (e) {} }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const money = n => Number(n).toLocaleString("uk-UA") + " грн";
+let DATA = null, CAT = "", Q = "";
+
+function initials(name) {
+  const w = name.replace(/[«»"()]/g, "").split(/\s+/).filter(Boolean);
+  return esc((w[0] || "").slice(0, 1)) + "<span>" + esc((w[1] || "").slice(0, 1)) + "</span>";
+}
+function photo(it, cls) {
+  return it.photos && it.photos.length
+    ? `<img src="${esc(it.photos[0])}" alt="${esc(it.name)}" data-n="${esc(it.name)}" loading="lazy" referrerpolicy="no-referrer">`
+    : `<div class="ini">${initials(it.name)}</div>`;
+}
+function sizeChip(s, withQty) {
+  const one = s.size === "—";
+  const label = one ? (s.status === "in" ? "Є в наявності" : s.status === "out" ? "Немає" : "Наявність уточнюється") : esc(s.size);
+  const qty = withQty && s.status === "in" && s.qty != null ? `<small>${s.qty} шт.</small>` : "";
+  return `<span class="sz ${s.status}">${label}${qty}</span>`;
+}
+function availLine(it) {
+  const n = it.sizes.filter(s => s.status === "in").length, c = it.sizes.filter(s => s.status === "check").length;
+  if (n) return `<div class="avail ok">✓ Є в наявності${it.sizes.length > 1 ? `: ${n} з ${it.sizes.length} розмірів` : ""}</div>`;
+  if (c) return `<div class="avail">Наявність уточнюється</div>`;
+  return `<div class="avail">Немає в наявності</div>`;
+}
+function render() {
+  const items = DATA.items.filter(it => (!CAT || it.category === CAT)
+    && (!Q || (it.name + " " + it.description + " " + it.category).toLowerCase().includes(Q)));
+  $("grid").innerHTML = items.map(it => `
+    <button class="card" data-code="${esc(it.code)}">
+      <div class="ph">${photo(it)}</div>
+      <div class="body">
+        <div class="name">${esc(it.name)}</div>
+        <div class="price">${money(it.price)}</div>
+        ${availLine(it)}
+      </div>
+    </button>`).join("");
+  $("empty").hidden = items.length > 0;
+  document.querySelectorAll(".card").forEach(b => b.onclick = () => openItem(b.dataset.code));
+}
+function renderCats() {
+  const cats = ["", ...DATA.categories];
+  $("cats").innerHTML = cats.map(c => `<button class="chip${c === CAT ? " on" : ""}" data-c="${esc(c)}">${c ? esc(c) : "Усе"}</button>`).join("");
+  document.querySelectorAll(".chip").forEach(b => b.onclick = () => { CAT = b.dataset.c; renderCats(); render(); });
+}
+function openItem(code) {
+  const it = DATA.items.find(x => x.code === code);
+  if (!it) return;
+  const many = it.photos.length > 1;
+  const hasCheck = it.sizes.some(s => s.status === "check");
+  $("sheet").innerHTML = `
+    <div class="gal">
+      <button class="x" id="x" aria-label="Закрити">✕</button>
+      <div class="main" id="gmain">${photo(it)}</div>
+      ${many ? `<div class="thumbs">${it.photos.map((p, i) => `<img src="${esc(p)}" data-i="${i}" class="${i ? "" : "on"}" alt="" referrerpolicy="no-referrer">`).join("")}</div>` : ""}
+    </div>
+    <div class="info">
+      <h2>${esc(it.name)}</h2>
+      <div class="price">${money(it.price)}</div>
+      <div><div class="lbl">${it.sizes.length === 1 && it.sizes[0].size === "—" ? "Наявність" : "Розміри й наявність"}</div>
+        <div class="sizes">${it.sizes.map(s => sizeChip(s, true)).join("")}</div>
+        ${hasCheck ? `<div class="legend" style="margin-top:6px">«Уточнюється» — замовити можна, наявність підтвердимо після замовлення.</div>` : ""}
+      </div>
+      ${it.personalized ? `<div class="pers">🔢 Друкуємо ігровий номер і прізвище — їх вкажете під час замовлення.</div>` : ""}
+      ${it.description ? `<div><div class="lbl">Опис</div><div class="desc">${esc(it.description)}</div></div>` : ""}
+      ${it.size_chart ? `<div><div class="lbl">Таблиця розмірів</div><div class="chart">${esc(it.size_chart)}</div></div>` : ""}
+      ${DATA.order_note ? `<div class="cta">${esc(DATA.order_note)}</div>` : ""}
+    </div>`;
+  $("ov").classList.add("show");
+  $("x").onclick = closeItem;
+  $("sheet").querySelectorAll(".thumbs img").forEach(t => t.onclick = () => {
+    $("gmain").innerHTML = `<img src="${esc(it.photos[+t.dataset.i])}" alt="" referrerpolicy="no-referrer">`;
+    $("sheet").querySelectorAll(".thumbs img").forEach(o => o.classList.toggle("on", o === t));
+  });
+  if (inTg) { tg.BackButton.show(); tg.BackButton.onClick(closeItem); }
+  history.replaceState(null, "", "#" + encodeURIComponent(code));
+}
+function closeItem() {
+  $("ov").classList.remove("show");
+  if (inTg) { tg.BackButton.hide(); tg.BackButton.offClick(closeItem); }
+  history.replaceState(null, "", location.pathname + location.search);
+}
+// фото не завантажилось — літери назви замість порожнього місця
+document.addEventListener("error", e => {
+  const t = e.target;
+  if (t && t.tagName === "IMG" && t.dataset.n) {
+    const d = document.createElement("div"); d.className = "ini"; d.innerHTML = initials(t.dataset.n); t.replaceWith(d);
+  }
+}, true);
+$("ov").onclick = e => { if (e.target === $("ov")) closeItem(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeItem(); });
+$("q").oninput = e => { Q = e.target.value.trim().toLowerCase(); render(); };
+
+fetch("shop/catalog.json?ts=" + Date.now(), {cache: "no-store"})
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => {
+    DATA = d;
+    if (d.order_note) { $("note").textContent = d.order_note; $("note").hidden = false; }
+    $("foot").innerHTML = `Ціни в гривнях. Оновлено ${esc(new Date(d.generated_at).toLocaleString("uk-UA", {dateStyle: "medium", timeStyle: "short"}))}`
+      + (d.site_url ? ` · <a href="${esc(d.site_url)}" target="_blank" rel="noopener">Сайт клубу</a>` : "");
+    renderCats(); render();
+    const h = decodeURIComponent(location.hash.slice(1));
+    if (h) openItem(h);
+  })
+  .catch(() => { $("err").hidden = false; $("err").textContent = "Не вдалося завантажити каталог. Спробуйте оновити сторінку трохи згодом."; });
+</script>
+</body>
+</html>
